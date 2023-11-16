@@ -2,7 +2,7 @@ CREATE DATABASE IF NOT EXISTS mydb;
 USE mydb;
 
 CREATE TABLE IF NOT EXISTS clients (
-    tax_id INT NOT NULL PRIMARY KEY,
+    tax_id VARCHAR(255) NOT NULL PRIMARY KEY,
     company VARCHAR(255) NOT NULL,
     city VARCHAR(255) NOT NULL,
     postal_code VARCHAR(255) NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS contracts (
     price_color DECIMAL(10,2),
     start_date DATE,
     end_date DATE,
-    tax_id INT,
+    tax_id VARCHAR(255),
     FOREIGN KEY (tax_id) REFERENCES clients(tax_id)
 );
 
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS printers (
     color_counter INT NOT NULL,
     -- model VARCHAR(255) NOT NULL,
     contracts_id INT,
-    tax_id INT,
+    tax_id VARCHAR(255),
     statuses_id INT,
     FOREIGN KEY (contracts_id) REFERENCES contracts(id),
     FOREIGN KEY (tax_id) REFERENCES clients(tax_id),
