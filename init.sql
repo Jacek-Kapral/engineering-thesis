@@ -17,6 +17,17 @@ CREATE TABLE IF NOT EXISTS statuses (
     date DATE
 );
 
+CREATE TABLE IF NOT EXISTS printers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    serial_number VARCHAR(255) NOT NULL,
+    black_counter INT NOT NULL,
+    color_counter INT NOT NULL,
+    tax_id VARCHAR(255),
+    statuses_id INT,
+    FOREIGN KEY (tax_id) REFERENCES clients(tax_id),
+    FOREIGN KEY (statuses_id) REFERENCES statuses(id)
+);
+
 CREATE TABLE IF NOT EXISTS contracts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     price_black DECIMAL(10,2),
@@ -24,21 +35,9 @@ CREATE TABLE IF NOT EXISTS contracts (
     start_date DATE,
     end_date DATE,
     tax_id VARCHAR(255),
-    FOREIGN KEY (tax_id) REFERENCES clients(tax_id)
-);
-
-CREATE TABLE IF NOT EXISTS printers (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    serial_number VARCHAR(255) NOT NULL,
-    black_counter INT NOT NULL,
-    color_counter INT NOT NULL,
-    -- model VARCHAR(255) NOT NULL,
-    contracts_id INT,
-    tax_id VARCHAR(255),
-    statuses_id INT,
-    FOREIGN KEY (contracts_id) REFERENCES contracts(id),
+    printer_id INT,
     FOREIGN KEY (tax_id) REFERENCES clients(tax_id),
-    FOREIGN KEY (statuses_id) REFERENCES statuses(id)
+    FOREIGN KEY (printer_id) REFERENCES printers(id)
 );
 
 CREATE TABLE IF NOT EXISTS print_history (

@@ -1,7 +1,6 @@
-<!DOCTYPE html>
-<html>
-<body>
+{% extends "base.html" %}
 
+{% block content %}
 <h2>All Printers</h2>
 
 <table>
@@ -10,7 +9,8 @@
     <th>Serial Number</th>
     <th>Black Counter</th>
     <th>Color Counter</th>
-    <!-- Add other columns as needed -->
+    <th>Client</th>
+    <th>Contract ID</th>
   </tr>
   {% for printer in printers %}
   <tr>
@@ -18,12 +18,11 @@
     <td>{{ printer.serial_number }}</td>
     <td>{{ printer.black_counter }}</td>
     <td>{{ printer.color_counter }}</td>
-    <!-- Add other fields as needed -->
+    <td>{{ printer.company if printer.company else 'Not assigned to client' }}</td>
+    <td>{{ printer.contract_id if printer.contract_id else 'No contract assigned' }}</td>
   </tr>
   {% endfor %}
 </table>
 
 <a href="/"><button>Back</button></a>
-
-</body>
-</html>
+{% endblock %}

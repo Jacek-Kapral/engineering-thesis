@@ -1,7 +1,6 @@
-<!DOCTYPE html>
-<html>
-<body>
+{% extends "base.html" %}
 
+{% block content %}
 <h2>Register User</h2>
 
 <form action="/register" method="post">
@@ -18,5 +17,5 @@
   <input type="submit" value="Register">
 </form>
 
-</body>
-</html>
+<a href="/"><button>Back</button></a>
+{% endblock %}

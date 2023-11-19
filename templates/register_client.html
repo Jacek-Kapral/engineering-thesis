@@ -6,7 +6,7 @@
 
 <form method="POST">
     <label for="tax_id">Tax ID:</label><br>
-    <input type="text" id="tax_id" name="tax_id" required><br>
+    <input type="text" id="tax_id" name="tax_id" pattern="\d*" required><br>
     <label for="company">Company:</label><br>
     <input type="text" id="company" name="company" required><br>
     <label for="city">City:</label><br>
@@ -16,11 +16,11 @@
     <label for="address">Address:</label><br>
     <input type="text" id="address" name="address" required><br>
     <label for="phone">Phone:</label><br>
-    <input type="number" id="phone" name="phone" required><br>
+    <input type="tel" id="phone" name="phone" required><br>
     <label for="email">Email:</label><br>
     <input type="email" id="email" name="email" required><br>
     <input type="submit" value="Register">
 </form>
-
+<a href="/"><button>Back</button></a>
 </body>
 </html>
