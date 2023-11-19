@@ -1,0 +1,20 @@
+<h1>Print History</h1>
+
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Black Counter History</th>
+        <th>Color Counter History</th>
+        <th>Date</th>
+        <th>Printer ID</th>
+    </tr>
+    {% for row in history %}
+    <tr>
+        <td>{{ row.id }}</td>
+        <td>{{ row.counter_black_history }}</td>
+        <td>{{ row.counter_color_history }}</td>
+        <td>{{ row.date }}</td>
+        <td>{{ row.printers_id }}</td>
+    </tr>
+    {% endfor %}
+</table>

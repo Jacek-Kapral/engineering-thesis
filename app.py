@@ -40,13 +40,19 @@ def add_printer():
         return 'Printer data saved.'
     return render_template('add_printer.html')
 
-@app.route('/printers')
+@app.route('/printers', methods=['GET'])
 def printers():
     connection = get_db_connection()
     with connection.cursor() as cursor:
-        sql = "SELECT * FROM printers"
+        sql = """
+        SELECT printers.id, printers.serial_number, printers.black_counter, printers.color_counter, clients.company, contracts.id as contract_id
+        FROM printers
+        LEFT JOIN clients ON printers.tax_id = clients.tax_id
+        LEFT JOIN contracts ON printers.id = contracts.printer_id
+        """
         cursor.execute(sql)
         printers = cursor.fetchall()
+
     return render_template('printers.html', printers=printers)
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -88,6 +94,46 @@ def register_client():
         return 'Client registered.' 
 
     return render_template('register_client.html')
+
+@app.route('/add_contract', methods=['GET', 'POST'])
+def add_contract():
+    connection = get_db_connection()
+    if request.method == 'POST':
+        price_black = request.form['price_black']
+        price_color = request.form['price_color']
+        start_date = request.form['start_date']
+        end_date = request.form['end_date']
+        tax_id = request.form['tax_id']
+        printer_id = request.form['printer_id']
+
+        with connection.cursor() as cursor:
+            sql = "INSERT INTO contracts(price_black, price_color, start_date, end_date, tax_id) VALUES (%s, %s, %s, %s, %s)"
+            cursor.execute(sql, (price_black, price_color, start_date, end_date, tax_id))
+        connection.commit()
+
+        return 'Contract added.'  # or redirect the user after successful addition
+
+    else:
+        with connection.cursor() as cursor:
+            sql = "SELECT tax_id, company FROM clients"
+            cursor.execute(sql)
+            clients = cursor.fetchall()
+
+            sql = "SELECT id, serial_number FROM printers"
+            cursor.execute(sql)
+            printers = cursor.fetchall()
+
+        return render_template('add_contract.html', clients=clients, printers=printers)
+
+@app.route('/print_history', methods=['GET'])
+def print_history():
+    connection = get_db_connection()
+    with connection.cursor() as cursor:
+        sql = "SELECT * FROM print_history"
+        cursor.execute(sql)
+        history = cursor.fetchall()
+
+    return render_template('print_history.html', history=history)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)

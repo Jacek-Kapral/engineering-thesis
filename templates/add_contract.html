@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Add Contract</h1>
+
+<form method="post">
+    <label for="price_black">Price Black:</label>
+    <input type="number" id="price_black" name="price_black" step='0.01' required>
+
+    <label for="price_color">Price Color:</label>
+    <input type="number" id="price_color" name="price_color" step='0.01' required>
+
+    <label for="start_date">Start Date:</label>
+    <input type="date" id="start_date" name="start_date" required>
+
+    <label for="end_date">End Date:</label>
+    <input type="date" id="end_date" name="end_date" required>
+
+    <label for="tax_id">Client:</label>
+    <select id="tax_id" name="tax_id">
+        {% for client in clients %}
+        <option value="{{ client.tax_id }}">{{ client.company }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="printer_id">Printer:</label>
+    <select id="printer_id" name="printer_id">
+        {% for printer in printers %}
+        <option value="{{ printer.id }}">{{ printer.serial_number }}</option>
+        {% endfor %}
+    </select>
+
+    <input type="submit" value="Add Contract">
+</form>
+
+<a href="/"><button>Back</button></a>
+{% endblock %}
