@@ -14,4 +14,14 @@
 </form>
 
 <a href="/"><button>Back</button></a>
+
+<script>
+  var printerModels = {{ printer_models | tojson | safe }};
+  document.getElementById('printer_serial_number').addEventListener('input', function(e) {
+      var prefix = e.target.value.slice(0, 4);
+      var model = printerModels[prefix] || 'Unknown model';
+      document.getElementById('model').value = model;
+  });
+  </script>
+
 {% endblock %}
