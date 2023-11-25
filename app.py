@@ -3,6 +3,10 @@ import os
 from flask import Flask, render_template, request, session, g, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 import pymysql
+import json
+
+with open('printer_models.json') as f:
+    printer_models = json.load(f)
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -13,14 +17,6 @@ flask_app = config['flask']['app']
 app = Flask(__name__)
 app.config['ENV'] = flask_env
 app.secret_key = os.environ.get('SECRET_KEY')
-
-printer_models = {
-    "A4FM": "Bizhub C224",
-    "AA2M": "Bizhub C250i",
-    "A7R0": "Bizhub C258",
-    ""
-    # Add more models here
-}
 
 def get_db_connection():
     config = configparser.ConfigParser()
@@ -123,13 +119,21 @@ def add_printer():
         printer_serial_number = request.form['printer_serial_number']
         counter_black = int(request.form['counter_black'])
         counter_color = int(request.form['counter_color'])
+        # Extract the prefix from the serial number
+        prefix = printer_serial_number[:4] if len(printer_serial_number) >= 4 else printer_serial_number
+        # If prefix not found, try with 6 characters
+        if prefix not in printer_models:
+            prefix = printer_serial_number[:6] if len(printer_serial_number) >= 6 else printer_serial_number
+        # Look up the printer model based on the prefix
+        printer_model = printer_models.get(prefix, 'Unknown model')
         connection = get_db_connection()
         with connection.cursor() as cursor:
-            sql = "INSERT INTO printers(serial_number, black_counter, color_counter) VALUES (%s, %s, %s)"
-            cursor.execute(sql, (printer_serial_number, counter_black, counter_color))
+            sql = "INSERT INTO printers(serial_number, black_counter, color_counter, model) VALUES (%s, %s, %s, %s)"
+            cursor.execute(sql, (printer_serial_number, counter_black, counter_color, printer_model))
         connection.commit()
         return 'Printer data saved.'
-    return render_template('add_printer.html', printer_models=printer_models)
+    else:
+        return render_template('add_printer.html', printer_models=printer_models)
 
 @app.route('/printers', methods=['GET'])
 def printers():
