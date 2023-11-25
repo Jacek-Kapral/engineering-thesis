@@ -18,6 +18,7 @@ printer_models = {
     "A4FM": "Bizhub C224",
     "AA2M": "Bizhub C250i",
     "A7R0": "Bizhub C258",
+    ""
     # Add more models here
 }
 
