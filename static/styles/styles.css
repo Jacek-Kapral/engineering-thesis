@@ -1,0 +1,32 @@
+.required {
+    color: red;
+}
+
+.login-button {
+    background-color: #E0EFFF;
+    color: #656263;
+    border: none;
+}
+.menu-logo {
+    margin: 0;
+    padding: 0;
+}
+
+.navbar {
+    height: 72px;
+    padding: 0;
+    background-color: #d9d9d9;
+}
+
+.navbar-nav .nav-link {
+    color: #545454;
+}
+
+.navbar-brand {
+    padding: 0;
+}
+
+.navbar-logo {
+    height: 72px;
+    width: auto;
+}

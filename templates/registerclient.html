@@ -3,7 +3,7 @@
 {% block content %}
 <h2>Register Client</h2>
 
-<form method="POST">
+<form method="POST" onsubmit="return confirm('Client saved successfully!');">
     <label for="tax_id">Tax ID:</label><br>
     <input type="text" id="tax_id" name="tax_id" pattern="\d*" required><br>
     <label for="company">Company:</label><br>
@@ -21,5 +21,5 @@
     <input type="submit" value="Register">
 </form>
 
-<a href="/"><button>Back</button></a>
+<a href="/index"><button>Back</button></a>
 {% endblock %}

@@ -3,7 +3,7 @@
 {% block content %}
 <h1>Add Contract</h1>
 
-<form method="post">
+<form id="contractForm" method="post" onsubmit="return validateForm();">
     <label for="price_black">Price Black:</label>
     <input type="number" id="price_black" name="price_black" step='0.01' required>
 
@@ -33,5 +33,27 @@
     <input type="submit" value="Add Contract">
 </form>
 
-<a href="/"><button>Back</button></a>
+<a href="/index"><button>Back</button></a>
+
+<script>
+    function validateForm() {
+        var priceBlack = document.getElementById('price_black').value;
+        var priceColor = document.getElementById('price_color').value;
+        var startDate = document.getElementById('start_date').value;
+        var endDate = document.getElementById('end_date').value;
+    
+        if (priceBlack <= 0 || priceColor <= 0) {
+            alert('Price must be greater than 0');
+            return false;
+        }
+    
+        if (new Date(startDate) >= new Date(endDate)) {
+            alert('End date must be after start date');
+            return false;
+        }
+    
+        return confirm('Contract saved successfully!');
+    }
+    </script>
+
 {% endblock %}

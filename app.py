@@ -6,7 +6,7 @@ import pymysql
 import json
 
 with open('printer_models.json') as f:
-    printer_models = json.load(f)
+    printer_models_from_file = json.load(f)
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -17,6 +17,11 @@ flask_app = config['flask']['app']
 app = Flask(__name__)
 app.config['ENV'] = flask_env
 app.secret_key = os.environ.get('SECRET_KEY')
+
+printer_models = {}
+for model, prefixes in printer_models_from_file.items():
+    for prefix in prefixes:
+        printer_models[prefix] = model
 
 def get_db_connection():
     config = configparser.ConfigParser()
@@ -117,30 +122,30 @@ def logout():
 def add_printer():
     if request.method == 'POST':
         printer_serial_number = request.form['printer_serial_number']
-        counter_black = int(request.form['counter_black'])
-        counter_color = int(request.form['counter_color'])
-        # Extract the prefix from the serial number
+        counter_black = request.form['counter_black']
+        counter_color = request.form['counter_color']
+        counter_black = int(counter_black) if counter_black else 0
+        counter_color = int(counter_color) if counter_color else 0
         prefix = printer_serial_number[:4] if len(printer_serial_number) >= 4 else printer_serial_number
-        # If prefix not found, try with 6 characters
         if prefix not in printer_models:
             prefix = printer_serial_number[:6] if len(printer_serial_number) >= 6 else printer_serial_number
-        # Look up the printer model based on the prefix
-        printer_model = printer_models.get(prefix, 'Unknown model')
+        printer_model = printer_models.get(prefix)
+        if not printer_model:
+            printer_model = request.form['model'] 
         connection = get_db_connection()
         with connection.cursor() as cursor:
             sql = "INSERT INTO printers(serial_number, black_counter, color_counter, model) VALUES (%s, %s, %s, %s)"
             cursor.execute(sql, (printer_serial_number, counter_black, counter_color, printer_model))
         connection.commit()
-        return 'Printer data saved.'
-    else:
-        return render_template('add_printer.html', printer_models=printer_models)
+        return redirect(url_for('index'))
+    return render_template('add_printer.html', printer_models=printer_models)
 
 @app.route('/printers', methods=['GET'])
 def printers():
     connection = get_db_connection()
     with connection.cursor() as cursor:
         sql = """
-        SELECT printers.id, printers.serial_number, printers.black_counter, printers.color_counter, clients.company, contracts.id as contract_id
+        SELECT printers.id, printers.serial_number, printers.model, printers.black_counter, printers.color_counter, clients.company, contracts.id as contract_id
         FROM printers
         LEFT JOIN clients ON printers.tax_id = clients.tax_id
         LEFT JOIN contracts ON printers.id = contracts.printer_id
@@ -205,7 +210,7 @@ def add_contract():
             cursor.execute(sql, (price_black, price_color, start_date, end_date, tax_id))
         connection.commit()
 
-        return 'Contract added.'  # or redirect the user after successful addition
+        return 'Contract added.'
 
     else:
         with connection.cursor() as cursor:

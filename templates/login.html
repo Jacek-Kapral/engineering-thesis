@@ -1,10 +1,17 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container">
+<div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-4">
-            <h2 class="text-center">Login</h2>
+            <div class="form-group text-center">
+                <picture>
+                    <source media="(min-width: 1200px)" srcset="{{ url_for('static', filename='img/logoapp_1753px.png') }}">
+                    <source media="(min-width: 992px)" srcset="{{ url_for('static', filename='img/logoapp_875px.png') }}">
+                    <source media="(min-width: 576px)" srcset="{{ url_for('static', filename='img/logoapp_437px.png') }}">
+                    <img src="{{ url_for('static', filename='img/logoapp_217px.png') }}" alt="App Logo" class="img-fluid">
+                </picture>
+            </div>
             <form action="/login" method="post">
                 <div class="form-group">
                     <label for="login">Login:</label>
@@ -14,7 +21,9 @@
                     <label for="password">Password:</label>
                     <input type="password" class="form-control" id="password" name="password" required>
                 </div>
-                <button type="submit" class="btn btn-primary">Login</button>
+                <div class="form-group text-center">
+                    <button type="submit" class="btn login-button">Login</button>
+                </div>
             </form>
         </div>
     </div>

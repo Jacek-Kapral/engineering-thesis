@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS printers (
     serial_number VARCHAR(255) NOT NULL,
     black_counter INT NOT NULL,
     color_counter INT NOT NULL,
+    model VARCHAR(255),
     tax_id VARCHAR(255),
     FOREIGN KEY (tax_id) REFERENCES clients(tax_id)
 );

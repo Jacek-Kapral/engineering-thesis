@@ -1,33 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My App</title>
+    <title>Printer Management Cloud Application</title>
     <!-- Add your CSS links here -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/styles.css') }}">
 </head>
 <body>
     {% if show_menu is not defined or show_menu %}
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">Main Menu</a>
+        <a class="navbar-brand navbar-brand-logo" href="{{ url_for('index') }}">
+            <img src="{{ url_for('static', filename='img/logotop.png') }}" alt="Logo" class="navbar-logo menu-logo">
+        </a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link" href="/register">Register a new user</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/registerclient">Register a new client</a>
+                    <a class="nav-link" href="/registerclient">Add a new client</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="/add_printer">Add a new printer</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="/add_contract">Add Contract</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="/printers">Show all printers</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/add_contract">Add Contract</a>
+                    <a class="nav-link" href="/register">Add a new user</a>
                 </li>
             </ul>
         </div>

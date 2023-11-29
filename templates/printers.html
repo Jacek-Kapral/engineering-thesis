@@ -7,6 +7,7 @@
   <tr>
     <th>ID</th>
     <th>Serial Number</th>
+    <th>Model</th>
     <th>Black Counter</th>
     <th>Color Counter</th>
     <th>Client</th>
@@ -16,6 +17,7 @@
   <tr>
     <td>{{ printer.id }}</td>
     <td>{{ printer.serial_number }}</td>
+    <td>{{ printer.model }}</td>
     <td>{{ printer.black_counter }}</td>
     <td>{{ printer.color_counter }}</td>
     <td>{{ printer.company if printer.company else 'Not assigned to client' }}</td>
@@ -24,5 +26,5 @@
   {% endfor %}
 </table>
 
-<a href="/"><button>Back</button></a>
+<a href="/index"><button>Back</button></a>
 {% endblock %}

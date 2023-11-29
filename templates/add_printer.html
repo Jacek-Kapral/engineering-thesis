@@ -3,25 +3,32 @@
 {% block content %}
 <h2>Add Printer</h2>
 
-<form method="POST">
-  <label for="printer_serial_number">Printer Serial Number:</label><br>
-  <input type="text" id="printer_serial_number" name="printer_serial_number"><br>
+<form method="POST" onsubmit="return confirm('Client data saved successfully!');">
+  <label for="printer_serial_number">Printer Serial Number:<span class="required"> *</span></label><br>
+  <input type="text" id="printer_serial_number" name="printer_serial_number" required pattern=".{9,}"><br>
   <label for="counter_black">Counter BW:</label><br>
-  <input type="number" id="counter_black" name="counter_black"><br>
+  <input type="number" id="counter_black" name="counter_black" value="0" min="0"><br>
   <label for="counter_color">Counter Color:</label><br>
-  <input type="number" id="counter_color" name="counter_color"><br>
+  <input type="number" id="counter_color" name="counter_color" value="0" min="0"><br>
+  <label for="model">Printer Model:</label><br>
+  <input type="text" id="model" name="model" required><br>
   <input type="submit" value="Submit">
 </form>
 
-<a href="/"><button>Back</button></a>
+<a href="/index"><button>Back</button></a>
+<br><br>
+<span class="required">*</span></label> - required field.
 
 <script>
   var printerModels = {{ printer_models | tojson | safe }};
   document.getElementById('printer_serial_number').addEventListener('input', function(e) {
       var prefix = e.target.value.slice(0, 4);
+      if (!(prefix in printerModels)) {
+          prefix = e.target.value.slice(0, 6);
+      }
       var model = printerModels[prefix] || 'Unknown model';
       document.getElementById('model').value = model;
   });
-  </script>
+</script>
 
 {% endblock %}
