@@ -1,6 +1,8 @@
 import configparser
 import os
-from flask import Flask, render_template, request, session, g, redirect, url_for
+from functools import wraps
+from flask import Flask, render_template, request, session, g, redirect, url_for, flash
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import pymysql
 import json
@@ -17,6 +19,21 @@ flask_app = config['flask']['app']
 app = Flask(__name__)
 app.config['ENV'] = flask_env
 app.secret_key = os.environ.get('SECRET_KEY')
+
+class User(UserMixin):
+    def __init__(self, id, username, password_hash, admin, email):
+        self.id = id
+        self.username = username
+        self.password_hash = password_hash
+        self.admin = admin
+        self.email = email
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
 
 printer_models = {}
 for model, prefixes in printer_models_from_file.items():
@@ -44,12 +61,25 @@ def home():
     if admin is None:
         return redirect(url_for('register_admin'))
     else:
-        return redirect(url_for('login'))
+        return redirect(url_for('login', show_menu=False))
+
+@login_manager.user_loader
+def load_user(user_id):
+    connection = get_db_connection()
+    with connection.cursor() as cursor:
+        sql = "SELECT * FROM users WHERE id = %s"
+        cursor.execute(sql, (user_id,))
+        user_data = cursor.fetchone()
+    if user_data:
+        return User(user_data['id'], user_data['login'], user_data['password'], user_data['admin'], user_data['email'])
+    else:
+        return None
+
 
 @app.before_request
 def require_login():
-    allowed_routes = ['login', 'register_admin']
-    if 'user_id' not in session and request.endpoint not in allowed_routes and request.method != 'GET':
+    allowed_routes = ['register_admin', 'login', 'static', 'home']
+    if not current_user.is_authenticated and request.endpoint not in allowed_routes:
         return redirect(url_for('login'))
 
 @app.route('/register_admin', methods=['GET', 'POST'])
@@ -77,24 +107,14 @@ def register_admin():
 
     return render_template('register_admin.html', show_menu=False)
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        login = request.form['login']
-        password = request.form['password']
-        connection = get_db_connection()
-        with connection.cursor() as cursor:
-            sql = "SELECT * FROM users WHERE login = %s"
-            cursor.execute(sql, (login,))
-            user = cursor.fetchone()
-
-        if user is None or not check_password_hash(user['password'], password):
-            return 'Invalid login or password.'
-
-        session['user_id'] = user['id']
-        return redirect(url_for('index'))
-
-    return render_template('login.html', show_menu=False)
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.admin:
+            flash('You do not have access to this page.')
+            return redirect(url_for('index'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.route('/index', methods=['GET'])
 def index():
@@ -113,12 +133,39 @@ def load_logged_in_user():
             cursor.execute(sql, (user_id,))
             g.user = cursor.fetchone()
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['login']
+        password = request.form['password']
+        connection = get_db_connection()
+
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM users WHERE login = %s"
+            cursor.execute(sql, (username,))
+            user_data = cursor.fetchone()
+
+        if user_data and check_password_hash(user_data['password'], password):
+            user = User(user_data['id'], user_data['login'], user_data['password'], user_data['admin'], user_data['email'])
+
+            login_user(user)
+
+            return redirect(request.args.get('next') or url_for('index'))
+        else:
+            flash('Invalid username or password', 'danger')
+            return redirect(url_for('login'))
+    else:
+        return render_template('login.html', show_menu=False)
+
 @app.route('/logout')
+@login_required
 def logout():
-    session.clear()
+    logout_user()
+    flash('Logged out.')
     return redirect(url_for('login'))
 
 @app.route('/add_printer', methods=['GET', 'POST'])
+@admin_required
 def add_printer():
     if request.method == 'POST':
         printer_serial_number = request.form['printer_serial_number']
@@ -137,6 +184,7 @@ def add_printer():
             sql = "INSERT INTO printers(serial_number, black_counter, color_counter, model) VALUES (%s, %s, %s, %s)"
             cursor.execute(sql, (printer_serial_number, counter_black, counter_color, printer_model))
         connection.commit()
+        flash('Printer added.', 'success')
         return redirect(url_for('index'))
     return render_template('add_printer.html', printer_models=printer_models)
 
@@ -156,6 +204,7 @@ def printers():
     return render_template('printers.html', printers=printers)
 
 @app.route('/register', methods=['GET', 'POST'])
+@admin_required
 def register():
     if request.method == 'POST':
         login = request.form['login']
@@ -169,11 +218,12 @@ def register():
             cursor.execute(sql, (login, password, admin, email))
         connection.commit()
 
-        return 'User registered.' 
-
+        flash('User registered.', 'success')
+        return redirect(url_for('index'))
     return render_template('register.html')
 
 @app.route('/registerclient', methods=['GET', 'POST'])
+@admin_required
 def register_client():
     if request.method == 'POST':
         tax_id = request.form['tax_id']
@@ -190,11 +240,12 @@ def register_client():
             cursor.execute(sql, (tax_id, company, city, postal_code, address, phone, email))
         connection.commit()
 
-        return 'Client registered.' 
-
+        flash('Client registered.', 'success')
+        return redirect(url_for('index'))
     return render_template('registerclient.html')
 
 @app.route('/add_contract', methods=['GET', 'POST'])
+@admin_required
 def add_contract():
     connection = get_db_connection()
     if request.method == 'POST':
@@ -210,7 +261,8 @@ def add_contract():
             cursor.execute(sql, (price_black, price_color, start_date, end_date, tax_id))
         connection.commit()
 
-        return 'Contract added.'
+        flash('Contract added.', 'success')
+        return redirect(url_for('index'))
 
     else:
         with connection.cursor() as cursor:
@@ -223,6 +275,15 @@ def add_contract():
             printers = cursor.fetchall()
 
         return render_template('add_contract.html', clients=clients, printers=printers)
+
+@app.route('/users')
+def users():
+    connection = get_db_connection()
+    with connection.cursor() as cursor:
+        sql = "SELECT * FROM users"
+        cursor.execute(sql)
+        users = cursor.fetchall()
+    return render_template('users.html', users=users)
 
 @app.route('/print_history', methods=['GET'])
 def print_history():

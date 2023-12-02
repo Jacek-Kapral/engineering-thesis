@@ -3,7 +3,7 @@
 {% block content %}
 <h2>Add Printer</h2>
 
-<form method="POST" onsubmit="return confirm('Client data saved successfully!');">
+<form method="POST">
   <label for="printer_serial_number">Printer Serial Number:<span class="required"> *</span></label><br>
   <input type="text" id="printer_serial_number" name="printer_serial_number" required pattern=".{9,}"><br>
   <label for="counter_black">Counter BW:</label><br>
