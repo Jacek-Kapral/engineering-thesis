@@ -1,23 +1,35 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Add Printer</h2>
 
 <form method="POST">
-  <label for="printer_serial_number">Printer Serial Number:<span class="required"> *</span></label><br>
-  <input type="text" id="printer_serial_number" name="printer_serial_number" required pattern=".{9,}"><br>
-  <label for="counter_black">Counter BW:</label><br>
-  <input type="number" id="counter_black" name="counter_black" value="0" min="0"><br>
-  <label for="counter_color">Counter Color:</label><br>
-  <input type="number" id="counter_color" name="counter_color" value="0" min="0"><br>
-  <label for="model">Printer Model:</label><br>
-  <input type="text" id="model" name="model" required><br>
-  <input type="submit" value="Submit">
+  <h2>Add Printer</h2>
+  <div class="form-row">
+    <div class="form-item">
+      <label for="printer_serial_number">Printer Serial Number:<span class="required"> *</span></label>
+      <input type="text" id="printer_serial_number" name="printer_serial_number" required pattern=".{9,}">
+    </div>
+    <div class="form-item">
+      <label for="model">Printer Model:</label>
+      <input type="text" id="model" name="model" required>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-item">
+      <label for="counter_black">Counter Black:</label>
+      <input type="number" id="counter_black" name="counter_black" value="0" min="0">
+    </div>
+    <div class="form-item">
+      <label for="counter_color">Counter Color:</label>
+      <input type="number" id="counter_color" name="counter_color" value="0" min="0">
+    </div>
+  </div>
+  <div class="button-group">
+    <input type="submit" value="Submit">
+    <button type="button" onclick="window.location.href='/index'">Back</button>
+  </div>
+  <div><span class="required">*</span> - required field.</div>
 </form>
-
-<a href="/index"><button>Back</button></a>
-<br><br>
-<span class="required">*</span></label> - required field.
 
 <script>
   var printerModels = {{ printer_models | tojson | safe }};

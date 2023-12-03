@@ -1,25 +1,52 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Register Client</h2>
+
+
 
 <form method="POST">
-    <label for="tax_id">Tax ID:</label><br>
-    <input type="text" id="tax_id" name="tax_id" pattern="\d*" required><br>
-    <label for="company">Company:</label><br>
-    <input type="text" id="company" name="company" required><br>
-    <label for="city">City:</label><br>
-    <input type="text" id="city" name="city" required><br>
-    <label for="postal_code">Postal Code:</label><br>
-    <input type="text" id="postal_code" name="postal_code" required><br>
-    <label for="address">Address:</label><br>
-    <input type="text" id="address" name="address" required><br>
-    <label for="phone">Phone:</label><br>
-    <input type="tel" id="phone" name="phone" required><br>
-    <label for="email">Email:</label><br>
-    <input type="email" id="email" name="email" required><br>
-    <input type="submit" value="Register">
-</form>
+    <h2>Register Client</h2>
+    <div class="form-row">
+      <div class="form-item">
+        <label for="tax_id">Tax ID:<span class="required">*</span></label>
+        <input type="text" id="tax_id" name="tax_id" pattern="\d*" required>
+      </div>
+      <div class="form-item">
+        <label for="company">Company:<span class="required">*</span></label>
+        <input type="text" id="company" name="company" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-item">
+        <label for="city">City:<span class="required">*</span></label>
+        <input type="text" id="city" name="city" required>
+      </div>
+      <div class="form-item">
+        <label for="postal_code">Postal Code:<span class="required">*</span></label>
+        <input type="text" id="postal_code" name="postal_code" pattern="\d{2}-\d{3}" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-item">
+        <label for="address">Address:<span class="required">*</span></label>
+        <input type="text" id="address" name="address" required>
+      </div>
+      <div class="form-item">
+        <label for="phone">Phone:<span class="required">*</span></label>
+        <input type="tel" id="phone" name="phone" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-item">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email">
+      </div>
+    </div>
+    <div class="button-group">
+        <input type="submit" value="Submit">
+        <button type="button" onclick="window.location.href='/index'">Back</button>
+    </div>
+    <div><span class="required">*</span> - required field.</div>
+  </form>
 
-<a href="/index"><button>Back</button></a>
 {% endblock %}

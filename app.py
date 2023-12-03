@@ -1,11 +1,12 @@
 import configparser
 import os
 from functools import wraps
-from flask import Flask, render_template, request, session, g, redirect, url_for, flash
+from flask import Flask, render_template, request, session, g, redirect, url_for, flash, get_flashed_messages
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import pymysql
 import json
+import logging
 
 with open('printer_models.json') as f:
     printer_models_from_file = json.load(f)
@@ -75,13 +76,6 @@ def load_user(user_id):
     else:
         return None
 
-
-@app.before_request
-def require_login():
-    allowed_routes = ['register_admin', 'login', 'static', 'home']
-    if not current_user.is_authenticated and request.endpoint not in allowed_routes:
-        return redirect(url_for('login'))
-
 @app.route('/register_admin', methods=['GET', 'POST'])
 def register_admin():
     connection = get_db_connection()
@@ -133,8 +127,18 @@ def load_logged_in_user():
             cursor.execute(sql, (user_id,))
             g.user = cursor.fetchone()
 
+@app.before_request
+def require_login():
+    print("Checking if login is required")
+    allowed_routes = ['register_admin', 'login', 'static', 'home', 'logout']
+    if not current_user.is_authenticated and request.endpoint not in allowed_routes:
+        print("Redirecting to login")
+        return redirect(url_for('login'))
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if '_flashes' in session:
+        session['_flashes'] = [msg for msg in get_flashed_messages() if msg != 'Logged out.']
     if request.method == 'POST':
         username = request.form['login']
         password = request.form['password']
@@ -150,19 +154,21 @@ def login():
 
             login_user(user)
 
-            return redirect(request.args.get('next') or url_for('index'))
+            return redirect(url_for('index'))
         else:
             flash('Invalid username or password', 'danger')
-            return redirect(url_for('login'))
+            return render_template('login.html', show_menu=False)
     else:
         return render_template('login.html', show_menu=False)
 
 @app.route('/logout')
 @login_required
 def logout():
+    logging.warning("Logging out user") # For debugging purposes
     logout_user()
     flash('Logged out.')
-    return redirect(url_for('login'))
+    session.clear()  # Clear the session
+    return redirect(url_for('login', _external=True))
 
 @app.route('/add_printer', methods=['GET', 'POST'])
 @admin_required
