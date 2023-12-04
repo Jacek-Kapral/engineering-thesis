@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Service Requests</h1>
+{% if service_requests %}
+  {% for request in service_requests %}
+    <div>
+      <p>{{ request.service_request }}</p>
+      <p>Date: {{ request.request_date }}</p>
+      <p>Status: {{ 'Active' if request.active else 'Done' }}</p>
+      <form action="{{ url_for('toggle_request', request_id=request.id) }}" method="post">
+        <button type="submit">{{ 'Mark as done' if request.active else 'Mark as active' }}</button>
+      </form>
+    </div>
+  {% endfor %}
+{% else %}
+  <p>No active service requests.</p>
+{% endif %}
+{% endblock %}

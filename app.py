@@ -1,7 +1,7 @@
 import configparser
 import os
 from functools import wraps
-from flask import Flask, render_template, request, session, g, redirect, url_for, flash, get_flashed_messages
+from flask import Flask, render_template, request, session, g, redirect, url_for, flash, get_flashed_messages, abort
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import pymysql
@@ -112,7 +112,14 @@ def admin_required(f):
 
 @app.route('/index', methods=['GET'])
 def index():
-    return render_template('index.html')
+    connection = get_db_connection()
+    with connection.cursor() as cursor:
+        sql = "SELECT * FROM service_requests ORDER BY request_date DESC LIMIT 10"
+        cursor.execute(sql)
+        recent_requests = cursor.fetchall()
+    for request in recent_requests:
+        request['request_date'] = request['request_date'].date()
+    return render_template('index.html', recent_requests=recent_requests)
 
 @app.before_request
 def load_logged_in_user():
@@ -290,6 +297,17 @@ def users():
         cursor.execute(sql)
         users = cursor.fetchall()
     return render_template('users.html', users=users)
+
+@app.route('/service_requests', methods=['GET'])
+@login_required
+def service_request():
+    connection = get_db_connection()
+    with connection.cursor() as cursor:
+        sql = "SELECT * FROM service_requests"
+        cursor.execute(sql)
+        service_requests = cursor.fetchall()
+
+    return render_template('service_requests.html', service_requests=service_requests)
 
 @app.route('/print_history', methods=['GET'])
 def print_history():

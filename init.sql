@@ -64,6 +64,8 @@ CREATE TABLE IF NOT EXISTS service_requests (
     printer_id INT,
     service_request VARCHAR(255),
     assigned_to INT,
+    request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    active BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (company) REFERENCES clients(company),
     FOREIGN KEY (printer_id) REFERENCES printers(id),
     FOREIGN KEY (assigned_to) REFERENCES users(id)
