@@ -72,3 +72,26 @@ form {
 .vh-100 {
   height: 50vh;
 }
+
+.tlbtn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100px; /* Adjust as needed */
+  height: 100px; /* Adjust as needed */
+  padding: 10px;
+  background-color: #E0EFFF;
+  color: #656263;
+  text-decoration: none;
+  border: 2px solid #656263; /* Adjust as needed */
+  border-radius: 2px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.2; /* Adjust as needed */
+}
+
+.tlbtn:hover {
+  text-decoration: none;
+  color: #545454; /* Adjust as needed */
+  box-shadow: 0 0 10px rgba(0,0,0,0.25); /* Adjust as needed */
+}

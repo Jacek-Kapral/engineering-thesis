@@ -2,6 +2,7 @@
 
 {% block content %}
 <h1>Service Requests</h1>
+
 {% if service_requests %}
   {% for request in service_requests %}
     <div>
@@ -16,4 +17,5 @@
 {% else %}
   <p>No active service requests.</p>
 {% endif %}
+<a href="{{ url_for('new_service_request') }}" class="tlbtn">New Service Request</a>
 {% endblock %}

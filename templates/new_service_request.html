@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>New Service Request</h1>
+<form action="{{ url_for('create_service_request') }}" method="post">
+  <label for="company">Client:</label>
+  <select id="company" name="company">
+    {% for client in clients %}
+      <option value="{{ client.tax_id }}">{{ client.company }}</option>
+    {% endfor %}
+  </select>
+  <label for="printer_id">Printer:</label>
+  <select id="printer_id" name="printer_id">
+    {% for printer in printers %}
+      <option value="{{ printer.id }}">{{ printer.serial_number }}</option>
+    {% endfor %}
+  </select>
+  <label for="service_request">Problem:</label>
+  <textarea id="service_request" name="service_request"></textarea>
+  <button type="submit">Submit</button>
+</form>
+{% endblock %}
