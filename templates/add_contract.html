@@ -2,7 +2,9 @@
 
 {% block content %}
 
-<h2>Add Contract</h2>
+<div class="center-container">
+  <h2>Add contract</h2>
+</div>
 
 <form id="contractForm" method="post" onsubmit="return validateForm();">
   <div class="form-row">
@@ -46,6 +48,9 @@
   <div class="button-group">
     <input type="submit" value="Submit">
     <button type="button" onclick="window.location.href='/index'">Back</button>
+  </div>
+  <div>
+    <span class="required">*</span> - required field.
   </div>
 </form>
 

@@ -1,9 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>All Printers</h2>
 
-<table>
+<div class="center-container">
+  <h2>All Printers</h2>
+</div>
+
+<table class="styled-table">
   <tr>
     <th>ID</th>
     <th>Serial Number</th>
@@ -26,5 +29,7 @@
   {% endfor %}
 </table>
 
-<a href="/index"><button>Back</button></a>
+<div class="button-group">
+  <a href="/index"><button>Back</button></a>
+</div>
 {% endblock %}

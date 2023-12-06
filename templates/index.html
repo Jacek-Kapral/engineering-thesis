@@ -2,8 +2,11 @@
 
 {% block content %}
 
-<a href="{{ url_for('new_service_request') }}" class="tlbtn">New Service Request</a>
+<div class="button-container">
+    <a href="{{ url_for('new_service_request') }}" class="tlbtn">New Service Request</a>
+    <a href="{{ url_for('my_requests') }}" class="tlbtn">Requests assigned to me</a>
+</div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
 {% endblock %}

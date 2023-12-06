@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>My Service Requests</h1>
+{% if service_requests %}
+    <ul>
+    {% for request in service_requests %}
+        <li>{{ request.description }}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No service requests currently assigned</p>
+{% endif %}
+{% endblock %}

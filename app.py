@@ -174,7 +174,7 @@ def logout():
     logging.warning("Logging out user") # For debugging purposes
     logout_user()
     flash('Logged out.')
-    session.clear()  # Clear the session
+    session.clear() 
     return redirect(url_for('login', _external=True))
 
 @app.route('/add_printer', methods=['GET', 'POST'])
@@ -272,12 +272,16 @@ def add_contract():
         with connection.cursor() as cursor:
             sql = "INSERT INTO contracts(price_black, price_color, start_date, end_date, tax_id) VALUES (%s, %s, %s, %s, %s)"
             cursor.execute(sql, (price_black, price_color, start_date, end_date, tax_id))
+
+            sql = "UPDATE printers SET assigned = TRUE WHERE id = %s"
+            cursor.execute(sql, (printer_id,))
+
         connection.commit()
 
         flash('Contract added.', 'success')
         return redirect(url_for('index'))
 
-    else:
+    else:  # Level 1
         with connection.cursor() as cursor:
             sql = "SELECT tax_id, company FROM clients"
             cursor.execute(sql)
@@ -288,6 +292,22 @@ def add_contract():
             printers = cursor.fetchall()
 
         return render_template('add_contract.html', clients=clients, printers=printers)
+
+@app.route('/printer/<int:printer_id>')
+@login_required
+def printer_info(printer_id):
+    connection = get_db_connection()
+    with connection.cursor() as cursor:
+        sql = """
+        SELECT printers.*, clients.company 
+        FROM printers 
+        LEFT JOIN contracts ON printers.id = contracts.printer_id 
+        LEFT JOIN clients ON contracts.tax_id = clients.tax_id 
+        WHERE printers.id = %s
+        """
+        cursor.execute(sql, (printer_id,))
+        printer = cursor.fetchone()
+    return render_template('printer_info.html', printer=printer)
 
 @app.route('/users')
 def users():
@@ -314,7 +334,6 @@ def service_request():
 def new_service_request():
     connection = get_db_connection()
     with connection.cursor() as cursor:
-        # Fetch clients and printers for the dropdowns
         cursor.execute("SELECT tax_id, company FROM clients")
         clients = cursor.fetchall()
         cursor.execute("SELECT id, serial_number FROM printers")
@@ -325,20 +344,27 @@ def new_service_request():
 @app.route('/service_requests', methods=['POST'])
 @login_required
 def create_service_request():
-    # Get data from the form
     company = request.form.get('company')
     printer_id = request.form.get('printer_id')
     service_request = request.form.get('service_request')
 
     connection = get_db_connection()
     with connection.cursor() as cursor:
-        # Insert a new record into the service_requests table
         sql = "INSERT INTO service_requests (company, printer_id, service_request) VALUES (%s, %s, %s)"
         cursor.execute(sql, (company, printer_id, service_request))
         connection.commit()
 
     return redirect(url_for('service_request'))
-    
+
+@app.route('/my-requests')
+@login_required
+def my_requests():
+    connection = get_db_connection()
+    with connection.cursor() as cursor:
+        sql = "SELECT * FROM service_requests WHERE assigned_to = %s"
+        cursor.execute(sql, (current_user.id,))
+        service_requests = cursor.fetchall()
+    return render_template('my_requests.html', service_requests=service_requests)
 
 @app.route('/print_history', methods=['GET'])
 def print_history():

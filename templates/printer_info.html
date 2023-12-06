@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="center-container">
+    <h2>Printer Information: {{ printer.serial_number }}</h2>
+</div>
+
+<p>Serial Number: {{ printer.serial_number }}</p>
+<p>Black Counter: {{ printer.black_counter }}</p>
+<p>Color Counter: {{ printer.color_counter }}</p>
+<p>Model: {{ printer.model }}</p>
+<p>Assigned to: {{ printer.company }}</p>
+<p>Additional Info: {{ printer.additional_info }}</p>
+{% endblock %}

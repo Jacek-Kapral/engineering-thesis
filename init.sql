@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS printers (
     black_counter INT NOT NULL,
     color_counter INT NOT NULL,
     model VARCHAR(255),
+    additional_info VARCHAR(255),
+    assigned BOOLEAN DEFAULT FALSE,
     tax_id VARCHAR(255),
     FOREIGN KEY (tax_id) REFERENCES clients(tax_id)
 );

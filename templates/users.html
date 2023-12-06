@@ -1,8 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Registered Users</h1>
-<table class="table">
+
+<div class="center-container">
+    <h2>Registered Users</h2>
+</div>
+
+<table class="styled-table">
     <thead>
         <tr>
             <th scope="col">#</th>
@@ -17,7 +21,7 @@
             <td>
                 {{ user.login }}
                 {% if user.admin %}
-                    <img src="{{ url_for('static', filename='img/adminico2.png') }}" alt="admin_icon">
+                    <img class="admin-icon" src="{{ url_for('static', filename='img/adminico2.png') }}" alt="admin_icon">
                 {% endif %}
             </td>
             <td>{{ user.email }}</td>
@@ -25,4 +29,7 @@
         {% endfor %}
     </tbody>
 </table>
+<div class="button-group">
+    <a href="/index"><button>Back</button></a>
+</div>
 {% endblock %}

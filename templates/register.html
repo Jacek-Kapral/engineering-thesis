@@ -2,10 +2,11 @@
 
 {% block content %}
 
-
+<div class="center-container">
+  <h2>Register User</h2>
+</div>
 
 <form action="/register" method="post">
-  <h2>Register User</h2>
   <div class="form-row">
     <div class="form-item">
       <label for="login">Login:<span class="required">*</span></label>
@@ -29,6 +30,9 @@
   <div class="button-group">
     <input type="submit" value="Submit">
     <button type="button" onclick="window.location.href='/index'">Back</button>
+  </div>
+  <div>
+    <span class="required">*</span> - required field.
   </div>
 </form>
 

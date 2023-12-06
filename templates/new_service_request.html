@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>New Service Request</h1>
+<div class="center-container">
+    <h2>New service request</h2>
+</div>
 <form action="{{ url_for('create_service_request') }}" method="post">
   <label for="company">Client:</label>
   <select id="company" name="company">
