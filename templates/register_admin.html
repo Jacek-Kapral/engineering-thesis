@@ -3,7 +3,8 @@
 {% block content %}
 
 <div class="container">
-  <h2>First app run - register admin</h2>
+  <h2>First app run</h2><br>
+  <h2>Register admin and Your company</h2>
 
   <form action="/register_admin" method="post">
   <div class="form-row">
@@ -21,7 +22,49 @@
   <div class="form-row">
     <div class="form-item">
       <label for="email">Email:<span class="required">*</span></label>
-      <input type="email" id="email" name="email" required>
+      <input type="email" id="email" name="email" value="a@s.s" required>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-item">
+      <label for="company_name">Company Name:<span class="required">*</span></label>
+      <input type="text" id="company_name" name="company_name" value="Test Company" required>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-item">
+      <label for="tax_id">Tax ID:<span class="required">*</span></label>
+      <input type="text" id="tax_id" name="tax_id" value="9990011999" required>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-item">
+      <label for="address">Address:<span class="required">*</span></label>
+      <input type="text" id="address" name="address" value="Test Road 15" required>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-item">
+      <label for="postal_code">Postal Code:<span class="required">*</span></label>
+      <input type="text" id="postal_code" name="postal_code" value="53500" required>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-item">
+      <label for="city">City:<span class="required">*</span></label>
+      <input type="text" id="city" name="city" value="Test City" required>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-item">
+      <label for="phone">Phone:<span class="required">*</span></label>
+      <input type="text" id="phone" name="phone" value="500000000" required>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-item">
+      <label for="company_email">Company Email:<span class="required">*</span></label>
+      <input type="email" id="company_email" name="company_email" value="asd@asd.pl" required>
     </div>
   </div>
   <div class="button-group">

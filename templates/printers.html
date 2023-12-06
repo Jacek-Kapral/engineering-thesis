@@ -6,30 +6,36 @@
   <h2>All Printers</h2>
 </div>
 
-<table class="styled-table">
-  <tr>
-    <th>ID</th>
-    <th>Serial Number</th>
-    <th>Model</th>
-    <th>Black Counter</th>
-    <th>Color Counter</th>
-    <th>Client</th>
-    <th>Contract ID</th>
-  </tr>
-  {% for printer in printers %}
-  <tr>
-    <td>{{ printer.id }}</td>
-    <td>{{ printer.serial_number }}</td>
-    <td>{{ printer.model }}</td>
-    <td>{{ printer.black_counter }}</td>
-    <td>{{ printer.color_counter }}</td>
-    <td>{{ printer.company if printer.company else 'Not assigned to client' }}</td>
-    <td>{{ printer.contract_id if printer.contract_id else 'No contract assigned' }}</td>
-  </tr>
-  {% endfor %}
-</table>
+<form method="POST" action="/edit_printer">
+  <table class="styled-table">
+    <tr>
+      <th>Select</th>
+      <th>ID</th>
+      <th>Serial Number</th>
+      <th>Model</th>
+      <th>Black Counter</th>
+      <th>Color Counter</th>
+      <th>Client</th>
+      <th>Contract ID</th>
+    </tr>
+    {% for printer in printers %}
+    <tr>
+      <td><input type="radio" name="printer_id" value="{{ printer.id }}"></td>
+      <td>{{ printer.id }}</td>
+      <td>{{ printer.serial_number }}</td>
+      <td>{{ printer.model }}</td>
+      <td>{{ printer.black_counter }}</td>
+      <td>{{ printer.color_counter }}</td>
+      <td>{{ printer.company if printer.company else 'Not assigned to client' }}</td>
+      <td>{{ printer.contract_id if printer.contract_id else 'No contract assigned' }}</td>
+    </tr>
+    {% endfor %}
+  </table>
 
-<div class="button-group">
-  <a href="/index"><button>Back</button></a>
-</div>
+  <div class="button-group">
+    <input type="submit" value="Edit Selected">
+    <a href="/index"><button type="button">Back</button></a>
+  </div>
+</form>
+
 {% endblock %}

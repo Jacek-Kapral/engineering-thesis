@@ -47,17 +47,23 @@ CREATE TABLE IF NOT EXISTS print_history (
     FOREIGN KEY (printers_id) REFERENCES printers(id)
 );
 
-CREATE TABLE IF NOT EXISTS models (
-    sn_prefix VARCHAR(255) PRIMARY KEY,
-    model VARCHAR(255)
-);
-
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     login VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     admin BOOLEAN NOT NULL,
     email VARCHAR(255)
+);
+
+CREATE TABLE my_company (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    company_name VARCHAR(255) NOT NULL,
+    tax_id VARCHAR(255) NOT NULL UNIQUE,
+    address VARCHAR(255) NOT NULL,
+    postal_code VARCHAR(10) NOT NULL,
+    city VARCHAR(255) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS service_requests (

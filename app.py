@@ -97,6 +97,23 @@ def register_admin():
             cursor.execute(sql, (login, password, True, email))
         connection.commit()
 
+        company_name = request.form['company_name']
+        tax_id = request.form['tax_id']
+        address = request.form['address']
+        postal_code = request.form['postal_code']
+        city = request.form['city']
+        phone = request.form['phone']
+        email = request.form['email']
+
+        with connection.cursor() as cursor:
+            sql = """
+            INSERT INTO my_company (company_name, tax_id, address, postal_code, city, phone, email)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(sql, (company_name, tax_id, address, postal_code, city, phone, email))
+
+        connection.commit()
+
         return redirect(url_for('login'))
 
     return render_template('register_admin.html', show_menu=False)
@@ -216,6 +233,76 @@ def printers():
 
     return render_template('printers.html', printers=printers)
 
+@app.route('/edit_printer', methods=['POST'])
+def edit_printer():
+    printer_id = request.form['printer_id']
+    connection = get_db_connection()
+    with connection.cursor() as cursor:
+        # Get printer details
+        sql_printer = "SELECT * FROM printers WHERE id = %s"
+        cursor.execute(sql_printer, (printer_id,))
+        printer = cursor.fetchone()
+
+        if printer is None:
+            # Handle the case where the printer doesn't exist
+            return "Printer not found", 404
+
+        # Get tax_id for the printer
+        sql_tax_id = "SELECT tax_id FROM printers WHERE id = %s"
+        cursor.execute(sql_tax_id, (printer_id,))
+        result = cursor.fetchone()
+        if result is not None and isinstance(result, (list, tuple)) and result[0] is not None:
+            tax_id = result[0]
+        else:
+            tax_id = "None assigned"
+
+        # Get company from clients table
+        sql_client = "SELECT IFNULL(company, 'None assigned') FROM clients WHERE tax_id = %s"
+        cursor.execute(sql_client, (tax_id,))
+        result = cursor.fetchone()
+        if result is not None and isinstance(result, (list, tuple)):
+            company = result[0]
+        else:
+            company = "None assigned"
+
+    # Add company to printer dictionary
+    printer['company'] = company
+
+    return render_template('edit_printer.html', printer=printer)
+
+@app.route('/update_printer', methods=['POST'])
+def update_printer():
+    printer_id = request.form['printer_id']
+    serial_number = request.form['serial_number']
+    model = request.form['model']
+    black_counter = request.form['black_counter']
+    color_counter = request.form['color_counter']
+    company = request.form['company']
+    contract_id = request.form['contract_id']
+    connection = get_db_connection()
+    with connection.cursor() as cursor:
+        # Update printer details
+        sql_printer = """
+        UPDATE printers SET serial_number = %s, model = %s, black_counter = %s, color_counter = %s
+        WHERE id = %s
+        """
+        cursor.execute(sql_printer, (serial_number, model, black_counter, color_counter, printer_id))
+        
+        # Get tax_id for the printer
+        sql_tax_id = "SELECT tax_id FROM printers WHERE id = %s"
+        cursor.execute(sql_tax_id, (printer_id,))
+        result = cursor.fetchone()
+        if result is not None:
+            tax_id = result[0]
+        else:
+            tax_id = "None assigned"
+
+        # Update company in clients table
+        sql_client = "UPDATE clients SET company = %s WHERE tax_id = %s"
+        cursor.execute(sql_client, (company, tax_id))
+    connection.commit()
+    return redirect(url_for('printers'))
+
 @app.route('/register', methods=['GET', 'POST'])
 @admin_required
 def register():
@@ -281,7 +368,7 @@ def add_contract():
         flash('Contract added.', 'success')
         return redirect(url_for('index'))
 
-    else:  # Level 1
+    else:
         with connection.cursor() as cursor:
             sql = "SELECT tax_id, company FROM clients"
             cursor.execute(sql)

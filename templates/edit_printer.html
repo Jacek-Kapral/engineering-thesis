@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="center-container">
+  <h2>Edit Printer</h2>
+</div>
+
+<form method="POST" action="/update_printer">
+  <input type="hidden" name="printer_id" value="{{ printer.id }}">
+
+  <div class="form-row">
+    <div class="form-item">
+      <label for="serial_number">Serial Number:</label>
+      <input type="text" id="serial_number" name="serial_number" value="{{ printer.serial_number }}">
+    </div>
+    <div class="form-item">
+      <label for="model">Model:</label>
+      <input type="text" id="model" name="model" value="{{ printer.model }}">
+    </div>
+    <div class="form-item">
+      <label for="black_counter">Black Counter:</label>
+      <input type="number" id="black_counter" name="black_counter" value="{{ printer.black_counter }}">
+    </div>
+    <div class="form-item">
+      <label for="color_counter">Color Counter:</label>
+      <input type="number" id="color_counter" name="color_counter" value="{{ printer.color_counter }}">
+    </div>
+    <div class="form-item">
+      <label for="company">Client:</label>
+      <input type="text" id="company" name="company" value="{{ printer.company }}">
+    </div>
+    <div class="form-item">
+      <label for="contract_id">Contract ID:</label>
+      <input type="text" id="contract_id" name="contract_id" value="{{ printer.contract_id }}">
+    </div>
+  </div>
+
+  <div class="button-group">
+    <input type="submit" value="Update">
+    <a href="/printers"><button type="button">Back</button></a>
+  </div>
+</form>
+
+{% endblock %}
