@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS clients (
     city VARCHAR(255) NOT NULL,
     postal_code VARCHAR(255) NOT NULL,
     address VARCHAR(255) NOT NULL,
-    phone INT NOT NULL,
+    phone VARCHAR(20) NOT NULL,
     email VARCHAR(255) NOT NULL
 );
 
@@ -23,19 +23,15 @@ CREATE TABLE IF NOT EXISTS printers (
     additional_info VARCHAR(255),
     assigned BOOLEAN DEFAULT FALSE,
     tax_id VARCHAR(255),
-    FOREIGN KEY (tax_id) REFERENCES clients(tax_id)
-);
-
-CREATE TABLE IF NOT EXISTS contracts (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    service_contract BOOLEAN DEFAULT FALSE,
+    lease_rent DECIMAL(10,2),
     price_black DECIMAL(10,2),
     price_color DECIMAL(10,2),
-    start_date DATE,
-    end_date DATE,
-    tax_id VARCHAR(255),
-    printer_id INT,
-    FOREIGN KEY (tax_id) REFERENCES clients(tax_id),
-    FOREIGN KEY (printer_id) REFERENCES printers(id)
+    contract_start_date DATE,
+    contract_duration INT,
+    warranty BOOLEAN DEFAULT FALSE,
+    warranty_duration INT,
+    FOREIGN KEY (tax_id) REFERENCES clients(tax_id)
 );
 
 CREATE TABLE IF NOT EXISTS print_history (
