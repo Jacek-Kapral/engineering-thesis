@@ -19,7 +19,7 @@
         <tr>
             <th scope="row">{{ user.id }}</th>
             <td>
-                {{ user.login }}
+                <a href="{{ url_for('edit_user', user_id=user.id) }}">{{ user.login }}</a>
                 {% if user.admin %}
                     <img class="admin-icon" src="{{ url_for('static', filename='img/adminico2.png') }}" alt="admin_icon">
                 {% endif %}

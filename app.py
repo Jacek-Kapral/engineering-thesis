@@ -51,6 +51,25 @@ def get_db_connection():
                            database=config['database']['database'],
                            cursorclass=pymysql.cursors.DictCursor)
 
+def get_user_by_id(user_id):
+    connection = get_db_connection()
+    with connection.cursor() as cursor:
+        sql = "SELECT * FROM users WHERE id = %s"
+        cursor.execute(sql, (user_id,))
+        user = cursor.fetchone()
+    return user
+
+def update_user_in_db(user_id, login, password, admin, email):
+    connection = get_db_connection()
+    with connection.cursor() as cursor:
+        sql = """
+        UPDATE users
+        SET login = %s, password = %s, admin = %s, email = %s
+        WHERE id = %s
+        """
+        cursor.execute(sql, (login, password, admin, email, user_id))
+    connection.commit()
+
 @app.route('/', methods=['GET'])
 def home():
     connection = get_db_connection()
@@ -303,6 +322,24 @@ def users():
         cursor.execute(sql)
         users = cursor.fetchall()
     return render_template('users.html', users=users)
+
+@app.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
+def edit_user(user_id):
+    connection = get_db_connection()
+    if request.method == 'POST':
+        # Get the updated user details from the request form
+        login = request.form['login']
+        password = request.form['password']
+        admin = request.form['admin'] == 'true'
+        email = request.form['email']
+        # Update the user details in the database
+        update_user_in_db(user_id, login, password, admin, email)
+        flash('User details updated.', 'success')
+        return redirect(url_for('edit_user', user_id=user_id))
+    else:
+        # Fetch user details from the database
+        user = get_user_by_id(user_id)
+        return render_template('edit_user.html', user=user)
 
 @app.route('/service_requests', methods=['GET'])
 @login_required

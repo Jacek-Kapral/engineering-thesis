@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Edit User: {{ user.login }}</h2>
+
+<form method="POST" action="{{ url_for('edit_user', user_id=user.id) }}">
+    <label for="login">Login:</label>
+    <input type="text" id="login" name="login" value="{{ user.login }}">
+
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password">
+
+    <label for="admin">Admin:</label>
+    <select id="admin" name="admin">
+        <option value="true" {% if user.admin %}selected{% endif %}>Yes</option>
+        <option value="false" {% if not user.admin %}selected{% endif %}>No</option>
+    </select>
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" value="{{ user.email }}">
+
+    <div class="button-group">
+        <input type="submit" value="Submit">
+        <button type="button" onclick="window.location.href='/index'">Back</button>
+    </div>
+</form>
+
+<script>
+document.getElementById('edit').addEventListener('click', function() {
+    // Make the user details editable
+    document.getElementById('login').readOnly = false;
+    document.getElementById('password').readOnly = false;
+    document.getElementById('admin').disabled = false;
+    document.getElementById('email').readOnly = false;
+    // Do this for all user details
+});
+</script>
+{% endblock %}
