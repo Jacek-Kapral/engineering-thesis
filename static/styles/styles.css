@@ -35,7 +35,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh; /* Adjust as needed */
+    height: 100vh;
   }
   
 form {
@@ -133,14 +133,14 @@ form {
 .center-container {
   display: flex;
   justify-content: center;
-  width: 50%; /* Adjust as needed */
+  width: 50%; 
   margin: 0 auto;
 }
 
 .button-container {
   display: flex;
   justify-content: center;
-  gap: 20px; /* Adjust as needed */
+  gap: 20px;
 }
 
 a {
