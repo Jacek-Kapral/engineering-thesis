@@ -142,3 +142,12 @@ form {
   justify-content: center;
   gap: 20px; /* Adjust as needed */
 }
+
+a {
+  text-decoration: none;
+  color: #545454;
+}
+
+a:hover {
+  color: #656263;
+}
