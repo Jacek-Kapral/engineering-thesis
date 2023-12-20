@@ -122,18 +122,22 @@
   var leaseRentInput = document.getElementById('lease_rent');
   var priceBlackInput = document.getElementById('price_black');
   var priceColorInput = document.getElementById('price_color');
+  var contractDurationInput = document.getElementById('contract_duration');  // Added this line
+
+  // Disable the price fields, lease rent field, warranty duration field, and contract duration field initially
+  priceBlackInput.disabled = true;
+  priceColorInput.disabled = true;
+  leaseRentInput.disabled = true;
+  warrantyDurationInput.disabled = true;
+  contractDurationInput.disabled = true;  // Added this line
 
   warrantyCheckbox.addEventListener('change', function() {
     if (this.checked) {
       serviceContractCheckbox.disabled = true;
-      leaseRentInput.disabled = true;
-      priceBlackInput.disabled = true;
-      priceColorInput.disabled = true;
+      warrantyDurationInput.disabled = false;  // Enable the warranty duration field
     } else {
       serviceContractCheckbox.disabled = false;
-      leaseRentInput.disabled = false;
-      priceBlackInput.disabled = false;
-      priceColorInput.disabled = false;
+      warrantyDurationInput.disabled = true;  // Disable the warranty duration field
     }
   });
 
@@ -141,9 +145,17 @@
     if (this.checked) {
       warrantyCheckbox.disabled = true;
       warrantyDurationInput.disabled = true;
+      priceBlackInput.disabled = false;
+      priceColorInput.disabled = false;
+      leaseRentInput.disabled = false;  // Enable the lease rent field
+      contractDurationInput.disabled = false;  // Enable the contract duration field
     } else {
       warrantyCheckbox.disabled = false;
       warrantyDurationInput.disabled = false;
+      priceBlackInput.disabled = true;
+      priceColorInput.disabled = true;
+      leaseRentInput.disabled = true;  // Disable the lease rent field
+      contractDurationInput.disabled = true;  // Disable the contract duration field
     }
   });
   

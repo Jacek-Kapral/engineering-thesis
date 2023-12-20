@@ -213,21 +213,20 @@ def add_printer():
         if not printer_model:
             printer_model = request.form['model'] 
 
-        price_black = request.form['price_black'] 
-        price_color = request.form['price_color']
-        start_date = request.form['start_date']
-        # end_date = request.form['end_date']
-        tax_id = request.form['tax_id']
+        price_black = request.form.get('price_black', None)  
+        price_color = request.form.get('price_color', None)  
+        start_date = request.form.get('start_date') or None
+        tax_id = request.form.get('tax_id', None)
 
         with connection.cursor() as cursor:
-            sql = "INSERT INTO printers(serial_number, black_counter, color_counter, model) VALUES (%s, %s, %s, %s)"
-            cursor.execute(sql, (printer_serial_number, counter_black, counter_color, printer_model))
+            sql = """
+            INSERT INTO printers(serial_number, black_counter, color_counter, model, price_black, price_color, contract_start_date, tax_id) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(sql, (printer_serial_number, counter_black, counter_color, printer_model, price_black, price_color, start_date, tax_id))
             printer_id = cursor.lastrowid
+            connection.commit()
 
-            sql = "INSERT INTO contracts(price_black, price_color, start_date, tax_id, printer_id) VALUES (%s, %s, %s, %s, %s)" 
-            cursor.execute(sql, (price_black, price_color, start_date, tax_id, printer_id))
-
-        connection.commit()
         flash('Printer and contract added.', 'success')
         return redirect(url_for('index'))
     else:
@@ -247,10 +246,10 @@ def printers():
             SELECT printers.id, printers.serial_number, printers.model, printers.black_counter, printers.color_counter, clients.company
             FROM printers
             LEFT JOIN clients ON printers.tax_id = clients.tax_id
-            LEFT JOIN contracts ON printers.id = contracts.printer_id
             """
             cursor.execute(sql)
             printers = cursor.fetchall()
+            print(printers)
 
         return render_template('printers.html', printers=printers)
     except Exception as e:
