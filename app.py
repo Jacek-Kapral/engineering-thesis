@@ -297,6 +297,71 @@ def register_client():
         return redirect(url_for('index'))
     return render_template('registerclient.html')
 
+@app.route('/clients', methods=['GET'])
+@login_required
+def clients():
+    connection = get_db_connection()
+    with connection.cursor() as cursor:
+        sql = "SELECT * FROM clients"
+        cursor.execute(sql)
+        clients = cursor.fetchall()
+    return render_template('clients.html', clients=clients)
+
+@app.route('/edit_client/<string:client_id>', methods=['GET', 'POST'])
+@login_required
+def edit_client(client_id):
+    connection = get_db_connection()
+    with connection.cursor() as cursor:
+        sql = "SELECT * FROM clients WHERE id = %s"
+        cursor.execute(sql, (client_id,))
+        client = cursor.fetchone()
+
+    if client is None:
+        flash('No client found with this ID.', 'danger')
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        tax_id = request.form['tax_id']
+        company = request.form['company']
+        city = request.form['city']
+        postal_code = request.form['postal_code']
+        address = request.form['address']
+        phone = request.form['phone']
+        email = request.form['email']
+
+        with connection.cursor() as cursor:
+            sql = """
+            UPDATE clients
+            SET tax_id = %s, company = %s, city = %s, postal_code = %s, address = %s, phone = %s, email = %s
+            WHERE id = %s
+            """
+            cursor.execute(sql, (tax_id, company, city, postal_code, address, phone, email, client_id))
+        connection.commit()
+
+        flash('Client details updated successfully.', 'success')
+        return redirect(url_for('index'))
+
+    return render_template('edit_client.html', client=client)
+
+@app.route('/client_printers/<string:client_id>', methods=['GET'])
+@login_required
+def client_printers(client_id):
+    connection = get_db_connection()
+    with connection.cursor() as cursor:
+        sql = """
+        SELECT printers.*
+        FROM printers
+        INNER JOIN clients ON printers.tax_id = clients.tax_id
+        WHERE clients.tax_id = %s
+        """
+        cursor.execute(sql, (client_id,))
+        printers = cursor.fetchall()
+
+    if not printers:
+        flash('No printers assigned to this client.', 'info')
+
+    return render_template('client_printers.html', printers=printers)
+
 @app.route('/printer/<int:printer_id>')
 @login_required
 def printer_info(printer_id):

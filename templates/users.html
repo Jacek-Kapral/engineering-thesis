@@ -7,14 +7,11 @@
 </div>
 
 <table class="styled-table">
-    <thead>
         <tr>
             <th scope="col">#</th>
             <th scope="col">Username - Login</th>
             <th scope="col">Email</th>
         </tr>
-    </thead>
-    <tbody>
         {% for user in users %}
         <tr>
             <th scope="row">{{ user.id }}</th>
@@ -27,7 +24,6 @@
             <td>{{ user.email }}</td>
         </tr>
         {% endfor %}
-    </tbody>
 </table>
 <div class="button-group">
     <a href="/index"><button>Back</button></a>

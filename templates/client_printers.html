@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Printers Assigned to Client</h2>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class="flashes">
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+{% if printers %}
+  <table>
+    <thead>
+      <tr>
+        <th>Serial Number</th>
+        <th>Model</th>
+        <th>Black Counter</th>
+        <th>Color Counter</th>
+        <!-- Add more columns as needed -->
+      </tr>
+    </thead>
+    <tbody>
+      {% for printer in printers %}
+        <tr>
+          <td>{{ printer.serial_number }}</td>
+          <td>{{ printer.model }}</td>
+          <td>{{ printer.black_counter }}</td>
+          <td>{{ printer.color_counter }}</td>
+          <!-- Add more cells as needed -->
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No printers assigned to this client.</p>
+{% endif %}
+{% endblock %}

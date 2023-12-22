@@ -151,3 +151,11 @@ a {
 a:hover {
   color: #656263;
 }
+
+.table-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 40%; 
+  margin: auto;
+}

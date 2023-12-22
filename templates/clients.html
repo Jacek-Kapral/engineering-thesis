@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="center-container">
+    <h2>All Clients</h2>
+</div>
+
+<form>
+    <table class="styled-table">
+            <tr>
+                <th scope="col">Tax ID</th>
+                <th scope="col">Company</th>
+                <th scope="col">City</th>
+                <th scope="col">Postal Code</th>
+                <th scope="col">Address</th>
+                <th scope="col">Phone</th>
+                <th scope="col">Email</th>
+            </tr>
+            {% for client in clients %}
+            <tr>
+                <td><a href="{{ url_for('edit_client', client_id=client.tax_id) }}">{{ client.tax_id }}</a></td>
+                <td>{{ client.company }}</td>
+                <td>{{ client.city }}</td>
+                <td>{{ client.postal_code }}</td>
+                <td>{{ client.address }}</td>
+                <td>{{ client.phone }}</td>
+                <td>{{ client.email }}</td>
+                <td>
+                    <a href="{{ url_for('client_printers', client_id=client.tax_id) }}">View Printers</a>
+                </td>
+            </tr>
+            {% endfor %}
+    </table>
+</form>
+<div class="button-group">
+    <a href="/index"><button>Back</button></a>
+</div>
+{% endblock %}
