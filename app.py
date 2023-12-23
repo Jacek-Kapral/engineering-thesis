@@ -4,6 +4,7 @@ from functools import wraps
 from flask import Flask, render_template, request, session, g, redirect, url_for, flash, get_flashed_messages, abort
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from pymysql.err import IntegrityError
 import pymysql
 import json
 import logging
@@ -240,7 +241,7 @@ def add_printer():
         return redirect(url_for('index'))
     else:
         with connection.cursor() as cursor:
-            sql = "SELECT company FROM clients"
+            sql = "SELECT * FROM clients"
             cursor.execute(sql)
             clients = cursor.fetchall()
 
@@ -297,12 +298,16 @@ def register_client():
         email = request.form['email']
 
         connection = get_db_connection()
-        with connection.cursor() as cursor:
-            sql = "INSERT INTO clients(tax_id, company, city, postal_code, address, phone, email) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-            cursor.execute(sql, (tax_id, company, city, postal_code, address, phone, email))
-        connection.commit()
+        try:
+            with connection.cursor() as cursor:
+                sql = "INSERT INTO clients(tax_id, company, city, postal_code, address, phone, email) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+                cursor.execute(sql, (tax_id, company, city, postal_code, address, phone, email))
+            connection.commit()
+            flash('Client registered.', 'success')
+        except IntegrityError:
+            flash('Client with this tax id is already in the database.', 'error')
+            return redirect(url_for('register_client'))
 
-        flash('Client registered.', 'success')
         return redirect(url_for('index'))
     return render_template('registerclient.html')
 
@@ -321,8 +326,8 @@ def clients():
 def edit_client(client_id):
     connection = get_db_connection()
     with connection.cursor() as cursor:
-        sql = "SELECT * FROM clients WHERE id = %s"
-        cursor.execute(sql, (client_id,))
+        sql = "SELECT * FROM clients WHERE tax_id = %s"
+        cursor.execute(sql, (tax_id,))
         client = cursor.fetchone()
 
     if client is None:
