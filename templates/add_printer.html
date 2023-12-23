@@ -20,7 +20,7 @@
   <div class="form-row">
     <div class="form-item">
       <label for="assigned">Assigned:</label>
-      <input type="checkbox" id="assigned" name="assigned">
+      <input type="checkbox" id="assigned" name="assigned" onchange="toggleClientDropdown()">
     </div>
     <div class="form-item">
         <label for="active">Active:</label>
@@ -30,13 +30,13 @@
   <div class="form-row">
     <div class="form-item">
       <label for="company">Client - Company name:</label>
-      <input list="companies" type="text" id="company" name="company">
+      <input list="companies" type="text" id="company" name="company" disabled>
       <datalist id="companies">
-        {% for client in clients %}
+          {% for client in clients %}
           <option value="{{ client[0] }}">
-        {% endfor %}
+          {% endfor %}
       </datalist>
-    </div>
+  </div>
     <div class="form-item">
       <label for="contract_id">Contract/Warranty ID:</label>
       <input type="text" id="contract_id" name="contract_id">
@@ -122,22 +122,21 @@
   var leaseRentInput = document.getElementById('lease_rent');
   var priceBlackInput = document.getElementById('price_black');
   var priceColorInput = document.getElementById('price_color');
-  var contractDurationInput = document.getElementById('contract_duration');  // Added this line
+  var contractDurationInput = document.getElementById('contract_duration');
 
-  // Disable the price fields, lease rent field, warranty duration field, and contract duration field initially
   priceBlackInput.disabled = true;
   priceColorInput.disabled = true;
   leaseRentInput.disabled = true;
   warrantyDurationInput.disabled = true;
-  contractDurationInput.disabled = true;  // Added this line
+  contractDurationInput.disabled = true;
 
   warrantyCheckbox.addEventListener('change', function() {
     if (this.checked) {
       serviceContractCheckbox.disabled = true;
-      warrantyDurationInput.disabled = false;  // Enable the warranty duration field
+      warrantyDurationInput.disabled = false;
     } else {
       serviceContractCheckbox.disabled = false;
-      warrantyDurationInput.disabled = true;  // Disable the warranty duration field
+      warrantyDurationInput.disabled = true; 
     }
   });
 
@@ -147,15 +146,15 @@
       warrantyDurationInput.disabled = true;
       priceBlackInput.disabled = false;
       priceColorInput.disabled = false;
-      leaseRentInput.disabled = false;  // Enable the lease rent field
-      contractDurationInput.disabled = false;  // Enable the contract duration field
+      leaseRentInput.disabled = false;
+      contractDurationInput.disabled = false; 
     } else {
       warrantyCheckbox.disabled = false;
       warrantyDurationInput.disabled = false;
       priceBlackInput.disabled = true;
       priceColorInput.disabled = true;
-      leaseRentInput.disabled = true;  // Disable the lease rent field
-      contractDurationInput.disabled = true;  // Disable the contract duration field
+      leaseRentInput.disabled = true;
+      contractDurationInput.disabled = true;
     }
   });
   
@@ -169,6 +168,12 @@
       clientInput.disabled = true;
     }
   });
+
+  function toggleClientInput() {
+    var checkbox = document.getElementById('assigned');
+    var input = document.getElementById('company');
+    input.disabled = !checkbox.checked;
+}
 </script>
 
 {% endblock %}

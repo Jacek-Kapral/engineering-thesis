@@ -54,7 +54,7 @@ def get_db_connection():
 def get_user_by_id(user_id):
     connection = get_db_connection()
     with connection.cursor() as cursor:
-        sql = "SELECT * FROM users WHERE id = %s"
+        sql = "SELECT * FROM users WHERE tax_id = %s"
         cursor.execute(sql, (user_id,))
         user = cursor.fetchone()
     return user
@@ -217,6 +217,15 @@ def add_printer():
         price_color = request.form.get('price_color', None)  
         start_date = request.form.get('start_date') or None
         tax_id = request.form.get('tax_id', None)
+
+        with connection.cursor() as cursor:
+            sql = "SELECT tax_id FROM printers WHERE serial_number = %s"
+            cursor.execute(sql, (printer_serial_number,))
+            result = cursor.fetchone()
+
+        if result is not None and result['tax_id'] is not None:
+            flash('This printer is already assigned to a client.', 'error')
+            return redirect(url_for('add_printer'))
 
         with connection.cursor() as cursor:
             sql = """
