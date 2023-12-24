@@ -217,7 +217,14 @@ def add_printer():
         price_black = request.form.get('price_black', None)  
         price_color = request.form.get('price_color', None)  
         start_date = request.form.get('start_date') or None
-        tax_id = request.form.get('tax_id', None)
+
+        assigned = 'assigned' in request.form
+        company = request.form.get('company', None)
+
+        if assigned and company:
+            tax_id = company
+        else:
+            tax_id = None
 
         with connection.cursor() as cursor:
             sql = "SELECT tax_id FROM printers WHERE serial_number = %s"

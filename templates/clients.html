@@ -6,8 +6,12 @@
     <h2>All Clients</h2>
 </div>
 
+<div class="center-container">
+    <input type="text" id="filterInput" onkeyup="filterTable()" placeholder="Search for company names..">
+</div>
+
 <form>
-    <table class="styled-table">
+    <table id="clientsTable" class="styled-table">
             <tr>
                 <th scope="col">Tax ID</th>
                 <th scope="col">Company</th>
@@ -36,4 +40,27 @@
 <div class="button-group">
     <a href="/index"><button>Back</button></a>
 </div>
+
+<script>
+function filterTable() {
+  var input, filter, table, tr, td, i, txtValue;
+  input = document.getElementById("filterInput");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("clientsTable");
+  tr = table.getElementsByTagName("tr");
+
+  for (i = 0; i < tr.length; i++) {
+    td = tr[i].getElementsByTagName("td")[1];
+    if (td) {
+      txtValue = td.textContent || td.innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }       
+  }
+}
+</script>
+
 {% endblock %}
