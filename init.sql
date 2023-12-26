@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS printers (
     contract_duration INT,
     warranty BOOLEAN DEFAULT FALSE,
     warranty_duration INT,
+    active BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (tax_id) REFERENCES clients(tax_id)
 );
 

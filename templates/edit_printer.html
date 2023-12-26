@@ -3,43 +3,76 @@
 {% block content %}
 
 <div class="center-container">
-  <h2>Edit Printer</h2>
+  <h2>Edit printer</h2>
 </div>
 
-<form method="POST" action="/update_printer">
-  <input type="hidden" name="printer_id" value="{{ printer.id }}">
-
+<form method="POST">
   <div class="form-row">
     <div class="form-item">
-      <label for="serial_number">Serial Number:</label>
+      <label for="printer_serial_number">Printer Serial Number:<span class="required"> *</span></label>
       <input type="text" id="serial_number" name="serial_number" value="{{ printer.serial_number }}">
     </div>
     <div class="form-item">
-      <label for="model">Model:</label>
-      <input type="text" id="model" name="model" value="{{ printer.model }}">
+      <label for="model">Printer Model:</label>
+      <input type="text" id="model" name="model" required value="{{ printer.model }}">
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-item">
+      <label for="assigned">Assigned:</label>
+      <input type="checkbox" id="assigned" name="assigned" {% if printer.assigned %}checked{% endif %}
+       onchange="document.getElementById('company').disabled = !this.checked;">
     </div>
     <div class="form-item">
-      <label for="black_counter">Black Counter:</label>
-      <input type="number" id="black_counter" name="black_counter" value="{{ printer.black_counter }}">
+        <label for="active">Active:</label>
+        <input type="checkbox" id="active" name="active" {% if printer.active %}checked{% endif %}>
     </div>
+  </div>
+  <div class="form-row">
     <div class="form-item">
-      <label for="color_counter">Color Counter:</label>
-      <input type="number" id="color_counter" name="color_counter" value="{{ printer.color_counter }}">
+      <label for="company">Client - Company name:</label>
+      <select id="company" name="company" {% if not printer.assigned %}disabled{% endif %}>
+          {% for client in clients %}
+          <option value="{{ client.tax_id }}" {% if client.tax_id == printer.tax_id %}selected{% endif %}>{{ client.company }}</option>
+          {% endfor %}
+      </select>
     </div>
+  </div>
     <div class="form-item">
-      <label for="company">Client:</label>
-      <input type="text" id="company" name="company" value="{{ printer.company }}">
-    </div>
-    <div class="form-item">
-      <label for="contract_id">Contract ID:</label>
+      <label for="contract_id">Contract/Warranty ID:</label>
       <input type="text" id="contract_id" name="contract_id" value="{{ printer.contract_id }}">
     </div>
   </div>
-
-  <div class="button-group">
-    <input type="submit" value="Update">
-    <a href="/printers"><button type="button">Back</button></a>
+  <div class="form-row">
+    <div class="form-item">
+      <label for="black_counter">Counter Black:</label>
+      <input type="number" id="black_counter" name="black_counter" value="{{ printer.black_counter }}" min="0">
+    </div>
+    <div class="form-item">
+      <label for="color_counter">Counter Color:</label>
+      <input type="number" id="color_counter" name="color_counter" value="{{ printer.color_counter }}" min="0">
+    </div>
   </div>
+    <div class="button-group">
+      <input type="submit" value="Submit">
+      <button type="button" onclick="window.location.href='/index'">Back</button>
+    </div>
+    <div><span class="required">*</span> - required field.</div>
 </form>
+
+
+<script>
+function toggleEdit() {
+  var checkbox = document.getElementById("editCheckbox");
+  var form = document.getElementById("editForm");
+  if (checkbox.checked) {
+    form.style.opacity = "1";
+    form.style.pointerEvents = "auto";
+  } else {
+    form.style.opacity = "0.5";
+    form.style.pointerEvents = "none";
+  }
+}
+</script>
 
 {% endblock %}

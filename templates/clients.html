@@ -7,7 +7,7 @@
 </div>
 
 <div class="center-container">
-    <input type="text" id="filterInput" onkeyup="filterTable()" placeholder="Search for company names..">
+    <input type="text" id="filterInput" onkeyup="filterTable()" placeholder="Filter: name or tax id...">
 </div>
 
 <form>
@@ -42,25 +42,27 @@
 </div>
 
 <script>
-function filterTable() {
-  var input, filter, table, tr, td, i, txtValue;
-  input = document.getElementById("filterInput");
-  filter = input.value.toUpperCase();
-  table = document.getElementById("clientsTable");
-  tr = table.getElementsByTagName("tr");
-
-  for (i = 0; i < tr.length; i++) {
-    td = tr[i].getElementsByTagName("td")[1];
-    if (td) {
-      txtValue = td.textContent || td.innerText;
-      if (txtValue.toUpperCase().indexOf(filter) > -1) {
-        tr[i].style.display = "";
-      } else {
-        tr[i].style.display = "none";
+    function filterTable() {
+      var input, filter, table, tr, td, i, txtValue;
+      input = document.getElementById("filterInput");
+      filter = input.value.toUpperCase();
+      table = document.getElementById("clientsTable");
+      tr = table.getElementsByTagName("tr");
+    
+      for (i = 0; i < tr.length; i++) {
+        tdTaxId = tr[i].getElementsByTagName("td")[0];
+        tdCompany = tr[i].getElementsByTagName("td")[1];
+        if (tdTaxId || tdCompany) {
+          txtValueTaxId = tdTaxId.textContent || tdTaxId.innerText;
+          txtValueCompany = tdCompany.textContent || tdCompany.innerText;
+          if (txtValueTaxId.toUpperCase().indexOf(filter) > -1 || txtValueCompany.toUpperCase().indexOf(filter) > -1) {
+            tr[i].style.display = "";
+          } else {
+            tr[i].style.display = "none";
+          }
+        }       
       }
-    }       
-  }
-}
-</script>
+    }
+    </script>
 
 {% endblock %}

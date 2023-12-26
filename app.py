@@ -222,7 +222,15 @@ def add_printer():
         company = request.form.get('company', None)
 
         if assigned and company:
-            tax_id = company
+            with connection.cursor() as cursor:
+                sql = "SELECT tax_id FROM clients WHERE company = %s"
+                cursor.execute(sql, (company,))
+                result = cursor.fetchone()
+                if result is not None:
+                    tax_id = result['tax_id']
+                else:
+                    flash('No client with this company name found.', 'error')
+                    return redirect(url_for('add_printer'))
         else:
             tax_id = None
 
@@ -256,7 +264,7 @@ def add_printer():
 
 @app.route('/printers', methods=['GET'])
 def printers():
-    try:
+    try: # for debugging purposes
         connection = get_db_connection()
         with connection.cursor() as cursor:
             sql = """
@@ -269,9 +277,62 @@ def printers():
             print(printers)
 
         return render_template('printers.html', printers=printers)
-    except Exception as e:
+    except Exception as e: # for debugging purposes
         print(f"An error occurred when executing the SQL query: {e}")
         return render_template('printers.html', printers=[])
+
+@app.route('/edit_printer/<int:printer_id>', methods=['GET', 'POST'])
+def edit_printer(printer_id):
+    connection = get_db_connection()
+    if request.method == 'POST':
+        printer_serial_number = request.form['serial_number']
+        model = request.form['model']
+        assigned = 'assigned' in request.form
+        active = 'active' in request.form
+        contract_id = request.form['contract_id']
+
+        if assigned:
+            tax_id = request.form['company']
+        else:
+            tax_id = None  
+
+        with connection.cursor() as cursor:
+            sql = "SELECT black_counter, color_counter FROM printers WHERE id=%s"
+            cursor.execute(sql, (printer_id,))
+            counter_data = cursor.fetchone()
+            if counter_data is not None:
+                counter_black = counter_data['black_counter']
+                counter_color = counter_data['color_counter']
+                print("Counter Black:", counter_black)
+                print("Counter Color:", counter_color)
+            else:
+                print("No data found for printer with ID:", printer_id)
+
+            sql = """
+            UPDATE printers SET serial_number=%s, model=%s, assigned=%s, active=%s, contract_id=%s, 
+            black_counter=%s, color_counter=%s, tax_id=%s
+            WHERE id=%s
+            """
+            cursor.execute(sql, (printer_serial_number, model, assigned, active, contract_id, counter_black, 
+                                 counter_color, tax_id, printer_id))
+            connection.commit()
+
+        return redirect(url_for('printers'))
+
+    else:
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM printers WHERE id=%s"
+            cursor.execute(sql, (printer_id,))
+            printer = cursor.fetchone()
+            if printer is not None:
+                printer = dict(printer)
+            print(printer)
+
+            sql = "SELECT * FROM clients"
+            cursor.execute(sql)
+            clients = cursor.fetchall()
+
+        return render_template('edit_printer.html', printer=printer, clients=clients)
 
 @app.route('/register', methods=['GET', 'POST'])
 @admin_required
@@ -364,10 +425,17 @@ def edit_client(client_id):
 
     return render_template('edit_client.html', client=client)
 
-@app.route('/client_printers/<string:client_id>', methods=['GET'])
-@login_required
+@app.route('/client_printers/<int:client_id>')
 def client_printers(client_id):
     connection = get_db_connection()
+    with connection.cursor() as cursor:
+        sql = "SELECT company FROM clients WHERE tax_id = %s"
+        cursor.execute(sql, (client_id,))
+        result = cursor.fetchone()
+        if result is not None:
+            client_name = result['company']
+        else:
+            client_name = "Unknown"
     with connection.cursor() as cursor:
         sql = """
         SELECT printers.*
@@ -381,7 +449,7 @@ def client_printers(client_id):
     if not printers:
         flash('No printers assigned to this client.', 'info')
 
-    return render_template('client_printers.html', printers=printers)
+    return render_template('client_printers.html', printers=printers, client_name=client_name)
 
 @app.route('/printer/<int:printer_id>')
 @login_required
@@ -412,17 +480,14 @@ def users():
 def edit_user(user_id):
     connection = get_db_connection()
     if request.method == 'POST':
-        # Get the updated user details from the request form
         login = request.form['login']
         password = request.form['password']
         admin = request.form['admin'] == 'true'
         email = request.form['email']
-        # Update the user details in the database
         update_user_in_db(user_id, login, password, admin, email)
         flash('User details updated.', 'success')
         return redirect(url_for('edit_user', user_id=user_id))
     else:
-        # Fetch user details from the database
         user = get_user_by_id(user_id)
         return render_template('edit_user.html', user=user)
 
@@ -452,14 +517,24 @@ def new_service_request():
 @app.route('/service_requests', methods=['POST'])
 @login_required
 def create_service_request():
-    company = request.form.get('company')
+    tax_id = request.form.get('company')  # Assuming 'company' field in the form actually contains the tax_id
     printer_id = request.form.get('printer_id')
     service_request = request.form.get('service_request')
 
     connection = get_db_connection()
     with connection.cursor() as cursor:
+        # Check if the company exists in the clients table
+        sql = "SELECT * FROM clients WHERE tax_id = %s"
+        cursor.execute(sql, (tax_id,))
+        result = cursor.fetchone()
+
+        if result is None:
+            flash('The company does not exist.', 'error')
+            return redirect(url_for('new_service_request'))
+
+        # If the company exists, insert the new service request
         sql = "INSERT INTO service_requests (company, printer_id, service_request) VALUES (%s, %s, %s)"
-        cursor.execute(sql, (company, printer_id, service_request))
+        cursor.execute(sql, (result['company'], printer_id, service_request))  # Use the company name from the result
         connection.commit()
 
     return redirect(url_for('service_request'))

@@ -6,28 +6,28 @@
   <h2>All Printers</h2>
 </div>
 
+<div class="center-container">
+  <input type="text" id="filterInput" onkeyup="filterTable()" placeholder="Filter: serial numbers...">
+</div>
+
 <form method="POST" action="/edit_printer">
-  <table class="styled-table">
+  <table id="printersTable" class="styled-table">
     <tr>
-      <th>Select</th>
       <th>ID</th>
       <th>Serial Number</th>
       <th>Model</th>
       <th>Black Counter</th>
       <th>Color Counter</th>
       <th>Client</th>
-      <th>Contract ID</th>
     </tr>
     {% for printer in printers %}
     <tr>
-      <td><input type="radio" name="printer_id" value="{{ printer.id }}"></td>
       <td>{{ printer.id }}</td>
-      <td>{{ printer.serial_number }}</td>
+      <td><a href="{{ url_for('edit_printer', printer_id=printer.id) }}">{{ printer.serial_number }}</a></td>
       <td>{{ printer.model }}</td>
       <td>{{ printer.black_counter }}</td>
       <td>{{ printer.color_counter }}</td>
       <td>{{ printer.company if printer.company else 'Not assigned to client' }}</td>
-      <!--<td>{{ printer.contract_id if printer.contract_id else 'No contract assigned' }}</td>-->
     </tr>
     {% endfor %}
   </table>
@@ -37,5 +37,27 @@
     <a href="/index"><button type="button">Back</button></a>
   </div>
 </form>
+
+<script>
+function filterTable() {
+  var input, filter, table, tr, td, i, txtValue;
+  input = document.getElementById("filterInput");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("printersTable");
+  tr = table.getElementsByTagName("tr");
+
+  for (i = 0; i < tr.length; i++) {
+    td = tr[i].getElementsByTagName("td")[2];
+    if (td) {
+      txtValue = td.textContent || td.innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }       
+  }
+}
+</script>
 
 {% endblock %}
