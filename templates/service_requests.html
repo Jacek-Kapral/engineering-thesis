@@ -2,20 +2,36 @@
 
 {% block content %}
 
+<a href="{{ url_for('new_service_request') }}" class="tlbtn">New Service Request</a>
+
+
 <div class="center-container">
-  <h2>Service requests</h2>
+  <h2>Active Service Requests</h2>
 </div>
 
 {% if service_requests %}
-  {% for request in service_requests %}
-    <div>
-      <p>{{ request.service_request }}</p>
-      <p>Date: {{ request.request_date }}</p>
-      <p>Status: {{ 'Active' if request.active else 'Done' }}</p>
-    </div>
-  {% endfor %}
+  <table class="styled-table">
+      <tr>
+        <th>Service Request</th>
+        <th>Company</th>
+        <th>Printer Serial Number</th>
+        <th>Printer Model</th>
+        <th>Date</th>
+        <th>Assigned to:</th>
+      </tr>
+      {% for request in service_requests %}
+        <tr>
+          <td>{{ request.service_request }}</td>
+          <td>{{ request.company }}</td>
+          <td>{{ request.serial_number }}</td>
+          <td>{{ request.model }}</td>
+          <td>{{ request.request_date }}</td>
+          <td>{{ 'Active' if request.active else 'Done' }}</td>
+        </tr>
+      {% endfor %}
+  </table>
 {% else %}
   <p>No active service requests.</p>
 {% endif %}
-<a href="{{ url_for('new_service_request') }}" class="tlbtn">New Service Request</a>
+
 {% endblock %}

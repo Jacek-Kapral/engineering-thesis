@@ -496,7 +496,12 @@ def edit_user(user_id):
 def service_request():
     connection = get_db_connection()
     with connection.cursor() as cursor:
-        sql = "SELECT * FROM service_requests"
+        sql = """
+        SELECT service_requests.*, clients.company, printers.serial_number, printers.model 
+        FROM service_requests 
+        JOIN clients ON service_requests.company = clients.company 
+        JOIN printers ON service_requests.printer_id = printers.id
+        """
         cursor.execute(sql)
         service_requests = cursor.fetchall()
 
