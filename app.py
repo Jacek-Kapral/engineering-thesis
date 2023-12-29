@@ -505,7 +505,11 @@ def service_request():
         cursor.execute(sql)
         service_requests = cursor.fetchall()
 
-    return render_template('service_requests.html', service_requests=service_requests)
+        # Fetch all users
+        cursor.execute("SELECT id, login FROM users")
+        users = cursor.fetchall()
+
+    return render_template('service_requests.html', service_requests=service_requests, users=users)
 
 @app.route('/service_requests/new', methods=['GET'])
 @login_required
@@ -544,14 +548,35 @@ def create_service_request():
 
     return redirect(url_for('service_request'))
 
-@app.route('/my-requests')
+@app.route('/assign_user', methods=['POST'])
+@login_required
+def assign_user():
+    request_id = request.form.get('request_id')
+    user_id = request.form.get('user_id')
+
+    connection = get_db_connection()
+    with connection.cursor() as cursor:
+        sql = "UPDATE service_requests SET assigned_to = %s WHERE id = %s"
+        cursor.execute(sql, (user_id, request_id))
+        connection.commit()
+
+    return redirect(url_for('service_request'))
+
+@app.route('/my_requests', methods=['GET'])
 @login_required
 def my_requests():
     connection = get_db_connection()
     with connection.cursor() as cursor:
-        sql = "SELECT * FROM service_requests WHERE assigned_to = %s"
+        sql = """
+        SELECT service_requests.*, clients.company, printers.serial_number, printers.model 
+        FROM service_requests 
+        JOIN clients ON service_requests.company = clients.company 
+        JOIN printers ON service_requests.printer_id = printers.id
+        WHERE service_requests.assigned_to = %s
+        """
         cursor.execute(sql, (current_user.id,))
         service_requests = cursor.fetchall()
+
     return render_template('my_requests.html', service_requests=service_requests)
 
 @app.route('/print_history', methods=['GET'])

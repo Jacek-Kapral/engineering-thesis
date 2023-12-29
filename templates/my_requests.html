@@ -3,12 +3,25 @@
 {% block content %}
 <h1>My Service Requests</h1>
 {% if service_requests %}
-    <ul>
-    {% for request in service_requests %}
-        <li>{{ request.description }}</li>
-    {% endfor %}
-    </ul>
+<table>
+  <tr>
+    <th>Service Request</th>
+    <th>Company</th>
+    <th>Printer Serial Number</th>
+    <th>Printer Model</th>
+    <th>Request Date</th>
+  </tr>
+  {% for request in service_requests %}
+    <tr>
+      <td>{{ request.service_request }}</td>
+      <td>{{ request.company }}</td>
+      <td>{{ request.serial_number }}</td>
+      <td>{{ request.model }}</td>
+      <td>{{ request.request_date }}</td>
+    </tr>
+  {% endfor %}
+</table>
 {% else %}
-    <p>No service requests currently assigned</p>
+<p>No service requests assigned to you.</p>
 {% endif %}
 {% endblock %}

@@ -2,6 +2,12 @@
 
 {% block content %}
 
+<style>
+  .styled-table th:nth-child(6) {
+    width: 200px;
+  }
+</style>
+
 <a href="{{ url_for('new_service_request') }}" class="tlbtn">New Service Request</a>
 
 
@@ -20,15 +26,25 @@
         <th>Assigned to:</th>
       </tr>
       {% for request in service_requests %}
-        <tr>
-          <td>{{ request.service_request }}</td>
-          <td>{{ request.company }}</td>
-          <td>{{ request.serial_number }}</td>
-          <td>{{ request.model }}</td>
-          <td>{{ request.request_date }}</td>
-          <td>{{ 'Active' if request.active else 'Done' }}</td>
-        </tr>
-      {% endfor %}
+      <tr>
+        <td>{{ request.service_request }}</td>
+        <td>{{ request.company }}</td>
+        <td>{{ request.serial_number }}</td>
+        <td>{{ request.model }}</td>
+        <td>{{ request.request_date }}</td>
+        <td>
+          <form action="{{ url_for('assign_user') }}" method="post">
+            <select name="user_id">
+              {% for user in users %}
+                <option value="{{ user.id }}" {% if user.id == request.assigned_to %}selected{% endif %}>{{ user.login }}</option>
+              {% endfor %}
+            </select>
+            <input type="hidden" name="request_id" value="{{ request.id }}">
+            <input type="submit" value="Assign">
+          </form>
+        </td>
+      </tr>
+  {% endfor %}
   </table>
 {% else %}
   <p>No active service requests.</p>
