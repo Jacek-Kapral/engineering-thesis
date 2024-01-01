@@ -1,27 +1,40 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>My Service Requests</h1>
+
+<div class="center-container">
+  <h2>My Service Requests</h2>
+</div>
+
 {% if service_requests %}
-<table>
-  <tr>
-    <th>Service Request</th>
-    <th>Company</th>
-    <th>Printer Serial Number</th>
-    <th>Printer Model</th>
-    <th>Request Date</th>
-  </tr>
-  {% for request in service_requests %}
+<div class="form-row">
+  <table class="styled-table">
     <tr>
-      <td>{{ request.service_request }}</td>
-      <td>{{ request.company }}</td>
-      <td>{{ request.serial_number }}</td>
-      <td>{{ request.model }}</td>
-      <td>{{ request.request_date }}</td>
+      <th>Service Request</th>
+      <th>Company</th>
+      <th>Printer Serial Number</th>
+      <th>Printer Model</th>
+      <th>Request Date</th>
     </tr>
-  {% endfor %}
-</table>
+    {% for request in service_requests %}
+      <tr>
+        <td>{{ request.service_request }}</td>
+        <td>{{ request.company }}</td>
+        <td>{{ request.serial_number }}</td>
+        <td>{{ request.model }}</td>
+        <td>{{ request.request_date }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+</div>
 {% else %}
-<p>No service requests assigned to you.</p>
+<div class="form-row">
+  <p class="margin-left">No service requests assigned to you.</p>
+</div>
 {% endif %}
+
+<div class="button-group">
+  <button type="button" onclick="window.location.href='/index'">Back</button>
+</div>
+
 {% endblock %}

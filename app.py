@@ -263,6 +263,7 @@ def add_printer():
         return render_template('add_printer.html', printer_models=printer_models, clients=clients)
 
 @app.route('/printers', methods=['GET'])
+@admin_required
 def printers():
     try: # for debugging purposes
         connection = get_db_connection()
@@ -282,6 +283,7 @@ def printers():
         return render_template('printers.html', printers=[])
 
 @app.route('/edit_printer/<int:printer_id>', methods=['GET', 'POST'])
+@admin_required
 def edit_printer(printer_id):
     connection = get_db_connection()
     if request.method == 'POST':
@@ -390,7 +392,7 @@ def clients():
     return render_template('clients.html', clients=clients)
 
 @app.route('/edit_client/<string:client_id>', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def edit_client(client_id):
     connection = get_db_connection()
     with connection.cursor() as cursor:
@@ -468,6 +470,7 @@ def printer_info(printer_id):
     return render_template('printer_info.html', printer=printer)
 
 @app.route('/users')
+@admin_required
 def users():
     connection = get_db_connection()
     with connection.cursor() as cursor:
@@ -477,6 +480,7 @@ def users():
     return render_template('users.html', users=users)
 
 @app.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
+@admin_required
 def edit_user(user_id):
     connection = get_db_connection()
     if request.method == 'POST':

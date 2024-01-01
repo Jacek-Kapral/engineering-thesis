@@ -159,3 +159,7 @@ a:hover {
   width: 40%; 
   margin: auto;
 }
+
+.margin-left {
+  margin-left: 3%;
+}

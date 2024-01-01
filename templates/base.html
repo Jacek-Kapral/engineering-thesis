@@ -31,15 +31,15 @@
             <ul class="navbar-nav">
                 {% if current_user.is_authenticated %}
                 <li class="nav-item">
-                    <a class="nav-link" href="/printers">Show all printers</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/users">Show all users</a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link" href="/clients">Show all clients</a>
                 </li>
                     {% if current_user.admin %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/printers">Show all printers</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/users">Show all users</a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link" href="/registerclient">Add a new client</a>
                         </li>

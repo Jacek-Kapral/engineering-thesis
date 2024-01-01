@@ -5,20 +5,32 @@
     <h2>New service request</h2>
 </div>
 <form action="{{ url_for('create_service_request') }}" method="post">
-  <label for="company">Client:</label>
-  <select id="company" name="company">
-    {% for client in clients %}
-      <option value="{{ client.tax_id }}">{{ client.company }}</option>
-    {% endfor %}
-  </select>
-  <label for="printer_id">Printer:</label>
-  <select id="printer_id" name="printer_id">
-    {% for printer in printers %}
-      <option value="{{ printer.id }}">{{ printer.serial_number }}</option>
-    {% endfor %}
-  </select>
-  <label for="service_request">Problem:</label>
-  <textarea id="service_request" name="service_request"></textarea>
-  <button type="submit">Submit</button>
+  <div class="form-row">
+    <div class="form-item">
+      <label for="company">Client:<span class="required">*</span></label>
+      <select id="company" name="company" required>
+        {% for client in clients %}
+          <option value="{{ client.tax_id }}">{{ client.company }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-item">
+      <label for="printer_id">Printer:<span class="required">*</span></label>
+      <select id="printer_id" name="printer_id" required>
+        {% for printer in printers %}
+          <option value="{{ printer.id }}">{{ printer.serial_number }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-item">
+      <label for="service_request">Problem:<span class="required">*</span></label>
+      <textarea id="service_request" name="service_request" required></textarea>
+    </div>
+  </div>
+  <div class="button-group">
+    <button type="submit">Submit</button>
+  </div>
 </form>
 {% endblock %}

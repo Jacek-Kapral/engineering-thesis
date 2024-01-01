@@ -28,12 +28,10 @@
 
 <script>
 document.getElementById('edit').addEventListener('click', function() {
-    // Make the user details editable
     document.getElementById('login').readOnly = false;
     document.getElementById('password').readOnly = false;
     document.getElementById('admin').disabled = false;
     document.getElementById('email').readOnly = false;
-    // Do this for all user details
 });
 </script>
 {% endblock %}
