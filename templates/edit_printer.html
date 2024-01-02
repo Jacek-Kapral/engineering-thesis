@@ -60,6 +60,12 @@
     <div><span class="required">*</span> - required field.</div>
 </form>
 
+<form id="deleteForm" action="{{ url_for('delete_printer', printer_id=printer.id) }}" method="post">
+  <div class="button-group" style="margin-top: 10%">
+    <input type="submit" value="Delete">
+  </div>
+</form>
+
 
 <script>
 function toggleEdit() {
@@ -73,6 +79,12 @@ function toggleEdit() {
     form.style.pointerEvents = "none";
   }
 }
+
+document.querySelector('#deleteForm').addEventListener('submit', function(event) {
+  if (!confirm('Are you sure you want to delete this printer?')) {
+    event.preventDefault();
+  }
+});
 </script>
 
 {% endblock %}

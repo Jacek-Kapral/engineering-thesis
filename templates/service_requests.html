@@ -8,9 +8,6 @@
   }
 </style>
 
-<a href="{{ url_for('new_service_request') }}" class="tlbtn">New Service Request</a>
-
-
 <div class="center-container">
   <h2>Active Service Requests</h2>
 </div>
@@ -31,7 +28,7 @@
         <td>{{ request.company }}</td>
         <td>{{ request.serial_number }}</td>
         <td>{{ request.model }}</td>
-        <td>{{ request.request_date }}</td>
+        <td>{{ request.request_date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
         <td>
           <form action="{{ url_for('assign_user') }}" method="post">
             <select name="user_id">

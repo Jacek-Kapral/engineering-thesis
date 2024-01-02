@@ -8,19 +8,11 @@
   <div class="form-row">
     <div class="form-item">
       <label for="company">Client:<span class="required">*</span></label>
-      <select id="company" name="company" required>
-        {% for client in clients %}
-          <option value="{{ client.tax_id }}">{{ client.company }}</option>
-        {% endfor %}
-      </select>
+      <input type="text" id="company" name="company" value="{{ clients.company }}" readonly required>
     </div>
     <div class="form-item">
       <label for="printer_id">Printer:<span class="required">*</span></label>
-      <select id="printer_id" name="printer_id" required>
-        {% for printer in printers %}
-          <option value="{{ printer.id }}">{{ printer.serial_number }}</option>
-        {% endfor %}
-      </select>
+      <input type="text" id="printer_id" name="printer_id" value="{{ printers.serial_number }} - {{ printers.model }}" readonly required>
     </div>
   </div>
   <div class="form-row">

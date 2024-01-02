@@ -20,7 +20,7 @@
         <th>Model</th>
         <th>Black Counter</th>
         <th>Color Counter</th>
-        <!-- Add more columns as needed -->
+        <th>Action</th> <!-- New column for the action link -->
       </tr>
       {% for printer in printers %}
         <tr>
@@ -28,7 +28,8 @@
           <td>{{ printer.model }}</td>
           <td>{{ printer.black_counter }}</td>
           <td>{{ printer.color_counter }}</td>
-          <!-- Add more cells as needed -->
+          <td>
+            <a href="{{ url_for('new_service_request_for_printer', tax_id=printer.tax_id, printer_id=printer.id, printer_serial_number=printer.serial_number) }}">New Service Request</a>          </td> <!-- New cell for the action link -->
         </tr>
       {% endfor %}
   </table>

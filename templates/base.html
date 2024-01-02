@@ -35,22 +35,25 @@
                 </li>
                     {% if current_user.admin %}
                         <li class="nav-item">
-                            <a class="nav-link" href="/printers">Show all printers</a>
+                            <a class="nav-link" href="{{ url_for('printers') }}">Show all printers</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/users">Show all users</a>
+                            <a class="nav-link" href="{{ url_for('users') }}">Show all users</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/registerclient">Add a new client</a>
+                            <a class="nav-link" href="{{ url_for('register_client') }}">Add a new client</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/add_printer">Add a new printer</a>
+                            <a class="nav-link" href="{{ url_for('add_printer') }}">Add a new printer</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/register">Add a new user</a>
+                            <a class="nav-link" href="{{ url_for('register') }}">Add a new user</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/service_requests">Service Requests</a>
+                            <a class="nav-link" href="{{ url_for('service_request') }}">Service Requests</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('new_service_request') }}">New Service Request</a>
                         </li>
                     {% endif %}
                 {% endif %}
@@ -68,7 +71,7 @@
     </nav>
     {% endif %}
     {% block content %}{% endblock %}
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 </body>
 </html>
