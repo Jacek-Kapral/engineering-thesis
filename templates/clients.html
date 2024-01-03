@@ -7,7 +7,10 @@
 </div>
 
 <div class="center-container">
-    <input type="text" id="filterInput" onkeyup="filterTable()" placeholder="Filter: name or tax id...">
+  <form action="{{ url_for('clients') }}" method="get">
+      <input type="text" name="filter" placeholder="Filter: name or tax id...">
+      <input type="submit" value="Filter">
+  </form>
 </div>
 
 <form>
@@ -37,8 +40,15 @@
             {% endfor %}
     </table>
 </form>
-<div class="button-group">
-    <a href="/index"><button>Back</button></a>
+
+
+<div class="pagination">
+  <a href="{{ url_for('clients', page=1) }}">First..</a>&nbsp;
+  {% if page > 1 %}
+  <a href="{{ url_for('clients', page=page-1) }}">..Previous..</a>&nbsp;
+  {% endif %}
+  <span>..Page {{ page }}..</span>&nbsp;
+  <a href="{{ url_for('clients', page=page+1) }}">..Next</a>
 </div>
 
 <script>

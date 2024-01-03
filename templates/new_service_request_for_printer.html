@@ -1,16 +1,22 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>New Service Request for Printer: {{ printer.serial_number }}</h2>
+<h2>New Service Request for Printer: {{ printer.serial_number }} assigned to {{ clients.company }}</h2>
 
-<!-- Display printer information -->
-<p>Serial Number: {{ printer.serial_number }}</p>
-<p>Model: {{ printer.model }}</p>
-<p>Black Counter: {{ printer.black_counter }}</p>
-<p>Color Counter: {{ printer.color_counter }}</p>
-<p>Client Company: {{ printer.company }}</p> <!-- Display client company -->
+<table>
+  <tr>
+    <td>Serial Number: {{ printer.serial_number }}</td>
+    <td>Model: {{ printer.model }}</td>
+  </tr>
+  <tr>
+    <td>Black Counter: {{ printer.black_counter }}</td>
+    <td>Color Counter: {{ printer.color_counter }}</td>
+  </tr>
+  <tr>
+    <td colspan="2">Client Company: {{ clients.company }}</td>
+  </tr>
+</table>
 
-<!-- Service request form -->
 <form action="{{ url_for('submit_service_request') }}" method="post">
   <div class="form-item">
     <label for="service_request">Problem:<span class="required">*</span></label>
@@ -18,11 +24,12 @@
   </div>
   <input type="hidden" name="printer_id" value="{{ printer.id }}">
   <input type="hidden" name="tax_id" value="{{ printer.tax_id }}">
+  <input type="hidden" name="company" value="{{ clients.company }}">
   <div class="button-group">
     <button type="submit">Submit</button>
   </div>
 </form>
 <div class="button-group">
-  <a href="{{ url_for('client_printers', tax_id=printer.tax_id) }}"><button>Back to Client Printers</button></a>
+  <button type="button" class="margin-top:20%" onclick="location.href='{{ url_for('client_printers', tax_id=printer.tax_id) }}';">Back to Client Printers</button>
 </div>
 {% endblock %}

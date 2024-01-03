@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="center-container">
+  <h2>Edit Client</h2>
+</div>
+
+<form method="POST">
+    <div class="form-row">
+      <div class="form-item">
+        <label for="tax_id">Tax ID:<span class="required">*</span></label>
+        <input type="text" id="tax_id" name="tax_id" pattern="\d*" value="{{ client.tax_id }}" required>
+      </div>
+      <div class="form-item">
+        <label for="company">Company:<span class="required">*</span></label>
+        <input type="text" id="company" name="company" value="{{ client.company }}" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-item">
+        <label for="city">City:<span class="required">*</span></label>
+        <input type="text" id="city" name="city" value="{{ client.city }}" required>
+      </div>
+      <div class="form-item">
+        <label for="postal_code">Postal Code:<span class="required">*</span></label>
+        <input type="text" id="postal_code" name="postal_code" pattern="[0-9]{5}" value="{{ client.postal_code }}" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-item">
+        <label for="address">Address:<span class="required">*</span></label>
+        <input type="text" id="address" name="address" value="{{ client.address }}" required>
+      </div>
+      <div class="form-item">
+        <label for="phone">Phone:<span class="required">*</span></label>
+        <input type="tel" id="phone" name="phone" pattern="[0-9]{9}" value="{{ client.phone }}" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-item">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" value="{{ client.email }}">
+      </div>
+    </div>
+    <div class="button-group">
+        <input type="submit" value="Update">
+        <button type="button" onclick="window.location.href='/index'">Back</button> 
+    </div>
+    <div>
+      <span class="required">*</span> - required field.
+    </div>
+    <div class="button-group" style="margin-top: 20%">
+      <button type="button" onclick="confirmDelete()">Delete Client</button>
+    </div>  
+</form>
+
+<script>
+  function confirmDelete() {
+    if (confirm("Are you sure you want to delete this client? This will also delete all related printers and service requests.")) {
+      window.location.href = "/delete_client/{{ client.tax_id }}";
+    }
+  }
+</script>
+
+{% endblock %}

@@ -5,7 +5,7 @@ USE mydb;
 
 CREATE TABLE IF NOT EXISTS clients (
     tax_id VARCHAR(255) NOT NULL PRIMARY KEY,
-    company VARCHAR(255) NOT NULL,
+    company VARCHAR(255) NOT NULL UNIQUE,
     INDEX(company),
     city VARCHAR(255) NOT NULL,
     postal_code VARCHAR(255) NOT NULL,
@@ -66,13 +66,13 @@ CREATE TABLE my_company (
 
 CREATE TABLE IF NOT EXISTS service_requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    company VARCHAR(255),
+    tax_id VARCHAR(255),
     printer_id INT,
     service_request VARCHAR(255),
     assigned_to INT,
     request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     active BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (company) REFERENCES clients(company),
+    FOREIGN KEY (tax_id) REFERENCES clients(tax_id),
     FOREIGN KEY (printer_id) REFERENCES printers(id),
     FOREIGN KEY (assigned_to) REFERENCES users(id)
 );

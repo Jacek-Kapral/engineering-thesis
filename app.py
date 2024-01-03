@@ -55,7 +55,7 @@ def get_db_connection():
 def get_user_by_id(user_id):
     connection = get_db_connection()
     with connection.cursor() as cursor:
-        sql = "SELECT * FROM users WHERE tax_id = %s"
+        sql = "SELECT * FROM users WHERE id = %s"
         cursor.execute(sql, (user_id,))
         user = cursor.fetchone()
     return user
@@ -265,6 +265,9 @@ def add_printer():
 @app.route('/printers', methods=['GET'])
 @admin_required
 def printers():
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    offset = (page - 1) * per_page
     try: # for debugging purposes
         connection = get_db_connection()
         with connection.cursor() as cursor:
@@ -272,15 +275,17 @@ def printers():
             SELECT printers.id, printers.serial_number, printers.model, printers.black_counter, printers.color_counter, clients.company
             FROM printers
             LEFT JOIN clients ON printers.tax_id = clients.tax_id
+            ORDER BY printers.id
+            LIMIT %s OFFSET %s
             """
-            cursor.execute(sql)
+            cursor.execute(sql, (per_page, offset))
             printers = cursor.fetchall()
             print(printers)
 
-        return render_template('printers.html', printers=printers)
+        return render_template('printers.html', printers=printers, page=page)
     except Exception as e: # for debugging purposes
         print(f"An error occurred when executing the SQL query: {e}")
-        return render_template('printers.html', printers=[])
+        return render_template('printers.html', printers=[], page=1)
 
 @app.route('/get_printers/<string:tax_id>', methods=['GET'])
 @login_required
@@ -404,12 +409,16 @@ def register_client():
 @app.route('/clients', methods=['GET'])
 @login_required
 def clients():
+    page = request.args.get('page', 1, type=int)
+    filter_query = request.args.get('filter', '')
+    per_page = 10
+    offset = (page - 1) * per_page
     connection = get_db_connection()
     with connection.cursor() as cursor:
-        sql = "SELECT * FROM clients"
-        cursor.execute(sql)
+        sql = "SELECT * FROM clients WHERE tax_id LIKE %s OR company LIKE %s ORDER BY tax_id LIMIT %s OFFSET %s"
+        cursor.execute(sql, ('%' + filter_query + '%', '%' + filter_query + '%', per_page, offset))
         clients = cursor.fetchall()
-    return render_template('clients.html', clients=clients)
+    return render_template('clients.html', clients=clients, page=page)
 
 @app.route('/edit_client/<string:tax_id>', methods=['GET', 'POST'])
 @admin_required
@@ -535,26 +544,27 @@ def get_all_printers():
     return jsonify(printers)
 
 @app.route('/service_requests', methods=['GET'])
-@login_required
-def service_request():
-    print("Service requests route hit")
-    connection = get_db_connection()
-    with connection.cursor() as cursor:
-        sql = """
-        SELECT service_requests.*, clients.company, printers.serial_number, printers.model 
-        FROM service_requests 
-        JOIN clients ON service_requests.company = clients.company 
-        JOIN printers ON service_requests.printer_id = printers.id
-        """
-        cursor.execute(sql)
-        service_requests = cursor.fetchall()
-        print(service_requests)
+@admin_required
+def service_requests():
+    page = request.args.get('page', 1, type=int)
+    per_page = 10 
+    offset = (page - 1) * per_page
+    try: # for debugging purposes
+        connection = get_db_connection()
+        with connection.cursor() as cursor:
+            sql = """
+            SELECT * FROM service_requests
+            ORDER BY request_date DESC
+            LIMIT %s OFFSET %s
+            """
+            cursor.execute(sql, (per_page, offset))
+            service_requests = cursor.fetchall()
+            print(service_requests)
 
-        cursor.execute("SELECT id, login FROM users")
-        users = cursor.fetchall()
-        print(users)
-
-    return render_template('service_requests.html', service_requests=service_requests, users=users)
+        return render_template('service_requests.html', service_requests=service_requests, page=page)
+    except Exception as e: # for debugging purposes
+        print(f"An error occurred when executing the SQL query: {e}")
+        return render_template('service_requests.html', service_requests=[], page=1)
 
 @app.route('/new_service_request', methods=['GET'])
 @login_required
@@ -570,20 +580,20 @@ def new_service_request():
 @app.route('/submit_service_request', methods=['POST'])
 @login_required
 def submit_service_request():
-    service_request = request.form.get('service_request')  # Changed from problem to service_request
+    service_request = request.form.get('service_request')
     printer_id = request.form.get('printer_id')
     tax_id = request.form.get('tax_id')
 
     connection = get_db_connection()
     with connection.cursor() as cursor:
         sql = """
-        INSERT INTO service_requests (service_request, printer_id, company)
+        INSERT INTO service_requests (service_request, printer_id, tax_id)
         VALUES (%s, %s, %s)
         """
         cursor.execute(sql, (service_request, printer_id, tax_id))
         connection.commit()
 
-    return redirect(url_for('service_request'))
+    return redirect(url_for('service_requests'))
 
 @app.route('/view_printers/<string:tax_id>', methods=['GET'])
 @login_required
@@ -601,7 +611,11 @@ def new_service_request_for_printer(printer_serial_number):
     with connection.cursor() as cursor:
         cursor.execute("SELECT * FROM printers WHERE serial_number = %s", (printer_serial_number,))
         printer = cursor.fetchone()
-    return render_template('new_service_request_for_printer.html', printer=printer)
+
+        cursor.execute("SELECT * FROM clients WHERE tax_id = %s", (printer['tax_id'],))
+        clients = cursor.fetchone()
+
+    return render_template('new_service_request_for_printer.html', printer=printer, clients=clients)
 
 @app.route('/service_requests', methods=['POST'])
 @login_required
@@ -614,17 +628,25 @@ def create_service_request():
     with connection.cursor() as cursor:
         sql = "SELECT * FROM clients WHERE tax_id = %s"
         cursor.execute(sql, (tax_id,))
-        result = cursor.fetchone()
+        client = cursor.fetchone()
 
-        if result is None:
+        if client is None:
             flash('The company does not exist.', 'error')
             return redirect(url_for('new_service_request'))
 
-        sql = "INSERT INTO service_requests (company, printer_id, service_request) VALUES (%s, %s, %s)"
-        cursor.execute(sql, (result['company'], printer_id, service_request)) 
+        sql = "SELECT * FROM printers WHERE id = %s"
+        cursor.execute(sql, (printer_id,))
+        printer = cursor.fetchone()
+
+        if printer is None:
+            flash('The printer does not exist.', 'error')
+            return redirect(url_for('new_service_request'))
+
+        sql = "INSERT INTO service_requests (service_request, printer_id, company) VALUES (%s, %s, %s)"
+        cursor.execute(sql, (service_request, printer_id, tax_id)) 
         connection.commit()
 
-    return redirect(url_for('service_request'))
+    return redirect(url_for('service_requests'))
 
 @app.route('/assign_user', methods=['POST'])
 @login_required
@@ -638,7 +660,7 @@ def assign_user():
         cursor.execute(sql, (user_id, request_id))
         connection.commit()
 
-    return redirect(url_for('service_request'))
+    return redirect(url_for('service_requests'))
 
 @app.route('/my_requests', methods=['GET'])
 @login_required
@@ -648,7 +670,7 @@ def my_requests():
         sql = """
         SELECT service_requests.*, clients.company, printers.serial_number, printers.model 
         FROM service_requests 
-        JOIN clients ON service_requests.company = clients.company 
+        JOIN clients ON service_requests.tax_id = clients.tax_id 
         JOIN printers ON service_requests.printer_id = printers.id
         WHERE service_requests.assigned_to = %s
         """
@@ -656,6 +678,38 @@ def my_requests():
         service_requests = cursor.fetchall()
 
     return render_template('my_requests.html', service_requests=service_requests)
+
+@app.route('/delete_request/<int:id>', methods=['POST'])
+@admin_required
+def delete_request(id):
+    try: # for debugging purposes
+        connection = get_db_connection()
+        with connection.cursor() as cursor:
+            sql = "DELETE FROM service_requests WHERE id = %s"
+            cursor.execute(sql, (id,))
+            connection.commit()
+        return redirect(url_for('service_requests'))
+    except Exception as e: # for debugging purposes
+        print(f"An error occurred when executing the SQL query: {e}")
+        return redirect(url_for('service_requests'))
+
+@app.route('/delete_client/<string:tax_id>', methods=['POST'])
+@login_required
+def delete_client(tax_id):
+    connection = get_db_connection()
+    with connection.cursor() as cursor:
+        sql = "DELETE FROM service_requests WHERE tax_id = %s"
+        cursor.execute(sql, (tax_id,))
+
+        sql = "UPDATE printers SET tax_id = NULL WHERE tax_id = %s"
+        cursor.execute(sql, (tax_id,))
+
+        sql = "DELETE FROM clients WHERE tax_id = %s"
+        cursor.execute(sql, (tax_id,))
+
+    connection.commit()
+
+    return redirect(url_for('index'))
 
 @app.route('/print_history', methods=['GET'])
 def print_history():

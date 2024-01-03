@@ -35,6 +35,14 @@
   <div class="button-group">
     <a href="/index"><button type="button">Back</button></a>
   </div>
+  <div class="pagination">
+    <a href="{{ url_for('printers', page=1) }}">First..</a>&nbsp;
+    {% if page > 1 %}
+    <a href="{{ url_for('printers', page=page-1) }}">..Previous..</a>&nbsp;
+    {% endif %}
+    <span>..Page {{ page }}..</span>&nbsp;
+    <a href="{{ url_for('printers', page=page+1) }}">..Next</a>
+  </div>
 </form>
 
 <script>
