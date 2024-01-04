@@ -1,10 +1,15 @@
 {% extends "base.html" %}
 
 {% block content %}
+{% set page = page if page is defined else 1 %}
+{% set per_page = per_page if per_page is defined else 10 %}
+{% set total_requests = total_requests if total_requests is defined else 0 %}
 
 <style>
-  .styled-table th:nth-child(6), .styled-table th:nth-child(7) {
+  .styled-table th:nth-child(6), .styled-table th:nth-child(7) .styled-table th:nth-child(8) {
     width: 200px;
+    text-align: center;
+    vertical-align: middle;
   }
   .button-group {
     background-color: #E0EFFF;
@@ -18,10 +23,18 @@
     color: #545454;
     box-shadow: 0 0 10px rgba(0,0,0,0.25);
   }
+  .centered-content {
+  text-align: center;
+  vertical-align: middle;
+  }
 </style>
 
 <div class="center-container">
   <h2>Active Service Requests</h2>
+</div>
+
+<div class="center-container">
+  <a href="{{ url_for('archived_requests') }}">View Archived Requests</a>
 </div>
 
 {% if service_requests %}
@@ -33,6 +46,7 @@
         <th>Printer Model</th>
         <th>Date</th>
         <th>Assigned to:</th>
+        <th>Done?</th>
         <th>Delete?</th>
       </tr>
       {% for request_id, request in service_requests.items() %}
@@ -53,6 +67,11 @@
             <button type="submit" class="button-group">Assign</button>
           </form>
         </td>
+        <td class="centered-content">
+          <form method="POST" action="{{ url_for('mark_done') }}" onsubmit="return confirm('Are you sure you want to mark this service request as done?');">
+            <input type="hidden" name="request_id" value="{{ request_id }}">
+            <input type="image" src="{{ url_for('static', filename='img/ok_ico.png') }}" alt="Done" style="display: block; margin: auto;">
+          </form>
         <td>
           <form action="{{ url_for('delete_request', id=request_id) }}" method="post" onsubmit="return confirm('Are you sure you want to delete this service request?');">
             <input type="image" src="{{ url_for('static', filename='img/del_ico.png') }}" alt="Delete" style="display: block; margin: auto;">

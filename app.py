@@ -562,8 +562,11 @@ def get_all_printers():
 def service_requests():
     page = request.args.get('page', 1, type=int)
     per_page = 10 
-    offset = (page - 1) * per_page
+    total_requests = None
+    service_requests = None
+    users = None
     try:
+        offset = (page - 1) * per_page
         connection = get_db_connection()
         with connection.cursor() as cursor:
             sql = """
@@ -571,87 +574,46 @@ def service_requests():
             FROM service_requests
             JOIN printers ON service_requests.printer_id = printers.id
             JOIN clients ON printers.tax_id = clients.tax_id
+            WHERE service_requests.active = TRUE
             ORDER BY service_requests.request_date DESC
+            LIMIT %s OFFSET %s
             """
-            cursor.execute(sql)
+            cursor.execute(sql, (per_page, offset))
             raw_service_requests = cursor.fetchall()
-            app.logger.info(f'Example service request row: {raw_service_requests[0]}')
+            # app.logger.info(f"Type of raw_service_requests: {type(raw_service_requests)}, value of raw_service_requests: {raw_service_requests}")
+            # app.logger.info(f"Value of per_page: {per_page}, value of offset: {offset}")
 
             if all(isinstance(row, dict) for row in raw_service_requests):
                 service_requests = {row['id']: row for row in raw_service_requests}
             else:
-                app.logger.error(f"Unexpected row type in raw_service_requests. Rows are not dictionaries.")
+                # app.logger.error(f"Unexpected row type in raw_service_requests. Rows are not dictionaries.")
 
             cursor.execute("SELECT * FROM users")
             raw_users = cursor.fetchall()
-            app.logger.info(f'Example user row: {raw_users[0]}')
+            # app.logger.info(f"Login of first user: {raw_users[0]['login']}")
 
             if all(isinstance(row, dict) for row in raw_users):
                 users = {row['id']: row for row in raw_users}
-                app.logger.info(f'users: {users}')
+                # app.logger.info(f'users: {users}')
             else:
-                app.logger.error(f"Unexpected row type in raw_users. Rows are not dictionaries.")
+                # app.logger.error(f"Unexpected row type in raw_users. Rows are not dictionaries.")
+            
+            # if raw_users:
+                # app.logger.info(f"Login of first user: {raw_users[0]['login']}")
+            # else:
+                # app.logger.info("No users found.")
 
-            # Calculate total_requests
-            cursor.execute("SELECT COUNT(*) FROM service_requests")
+            cursor.execute("SELECT COUNT(*) FROM service_requests WHERE active = TRUE")
             total_requests = cursor.fetchone()['COUNT(*)']
             result = cursor.fetchone()
-            app.logger.info(f'Result of COUNT query: {result}')
+            total_requests = result[0] if result is not None else 0
+            # app.logger.info(f'Result of COUNT query: {result}')
 
-        app.logger.info(f'service_requests: {service_requests}')
+        # app.logger.info(f'service_requests: {service_requests}')
         return render_template('service_requests.html', service_requests=service_requests, users=users)
     except Exception as e:
-        app.logger.error(f"An error occurred when executing the SQL query: {e}")
-        return render_template('service_requests.html', page=page, per_page=per_page, total_requests=total_requests, service_requests=service_requests, users=users)   
-
-'''@app.route('/service_requests', methods=['GET'])
-@admin_required
-def service_requests():
-    # page = request.args.get('page', 1, type=int)
-    # per_page = 10 
-    # offset = (page - 1) * per_page
-    try:
-        connection = get_db_connection()
-        with connection.cursor() as cursor:
-            sql = """
-            SELECT service_requests.*, printers.serial_number, printers.model, clients.company
-            FROM service_requests
-            JOIN printers ON service_requests.printer_id = printers.id
-            JOIN clients ON printers.tax_id = clients.tax_id
-            ORDER BY service_requests.request_date DESC
-            """
-            #             -- LIMIT %s OFFSET %s
-            # cursor.execute(sql, (per_page, offset))
-            cursor.execute(sql)
-            service_requests_columns = [column[0] for column in cursor.description]
-            raw_service_requests = cursor.fetchall()
-
-            if all(isinstance(row, dict) for row in raw_service_requests):
-                service_requests = {row['id']: row for row in raw_service_requests}
-            else:
-                app.logger.error(f"Unexpected row type in raw_service_requests. Rows are not dictionaries.")
-
-            cursor.execute("SELECT * FROM users")
-            users_columns = [column[0] for column in cursor.description]
-            raw_users = cursor.fetchall()
-            app.logger.info(f'raw_users: {raw_users}')
-
-            if all(isinstance(row, dict) for row in raw_users):
-                users = {row['id']: row for row in raw_users}
-                app.logger.info(f'users: {users}')
-            else:
-                app.logger.error(f"Unexpected row type in raw_users. Rows are not dictionaries.")
-
-            # cursor.execute("SELECT COUNT(*) FROM service_requests")
-            # fetchone_result = cursor.fetchone()
-            # total_requests = fetchone_result['COUNT(*)'] if fetchone_result is not None else 0
-
-        # return render_template('service_requests.html', service_requests=service_requests, page=page, users=users, total_requests=total_requests)
-        return render_template('service_requests.html', service_requests=service_requests, users=users)
-    except Exception as e:
-        app.logger.error(f"An error occurred when executing the SQL query: {e}")
-        # return render_template('service_requests.html', service_requests=[], page=1, users=[])
-        return render_template('service_requests.html', service_requests=[], users=[])'''
+        # app.logger.error(f"An error occurred when executing the SQL query: {e}")
+        return render_template('service_requests.html', page=page, per_page=per_page, total_requests=total_requests, service_requests=service_requests, users=users) 
 
 @app.route('/new_service_request', methods=['GET'])
 @login_required
@@ -798,12 +760,22 @@ def my_requests():
         FROM service_requests 
         JOIN clients ON service_requests.tax_id = clients.tax_id 
         JOIN printers ON service_requests.printer_id = printers.id
-        WHERE service_requests.assigned_to = %s
+        WHERE service_requests.assigned_to = %s AND service_requests.active = TRUE
         """
         cursor.execute(sql, (current_user.id,))
         service_requests = cursor.fetchall()
 
     return render_template('my_requests.html', service_requests=service_requests)
+
+@app.route('/mark_done', methods=['POST'])
+def mark_done():
+    request_id = request.form.get('request_id')
+    connection = get_db_connection()
+    with connection.cursor() as cursor:
+        sql = "UPDATE service_requests SET active = FALSE WHERE id = %s"
+        cursor.execute(sql, (request_id,))
+        connection.commit()
+    return redirect(url_for('service_requests'))
 
 @app.route('/delete_request/<int:id>', methods=['POST'])
 @admin_required
@@ -819,6 +791,112 @@ def delete_request(id):
     except Exception as e: # for debugging purposes
         print(f"An error occurred when executing the SQL query: {e}")
         return redirect(url_for('service_requests'))
+
+@app.route('/archived_requests', methods=['GET'])
+def archived_requests():
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    client_name = request.args.get('client_name', None)
+    tax_id = request.args.get('tax_id', None)
+
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT COUNT(*) FROM service_requests WHERE active = 0"
+
+            cursor.execute(sql)
+            result = cursor.fetchone()
+            # app.logger.info(f"Type of result: {type(result)}, value of result: {result}") # for debugging purposes
+            if result is not None:
+                total_requests = result['COUNT(*)']
+            else:
+                total_requests = 0
+            sql = """
+            SELECT 
+                service_requests.service_request,
+                service_requests.request_date,
+                users.login AS assigned_to,
+                clients.company AS client_name,
+                printers.serial_number AS printer_serial_number
+            FROM service_requests
+            INNER JOIN users ON service_requests.assigned_to = users.id
+            INNER JOIN clients ON service_requests.tax_id = clients.tax_id
+            INNER JOIN printers ON service_requests.printer_id = printers.id
+            WHERE service_requests.active = 0
+            """
+
+            if client_name:
+                sql += " AND clients.company = %s"
+            if tax_id:
+                sql += " AND clients.tax_id = %s"
+
+            sql += " LIMIT %s OFFSET %s"
+
+            cursor.execute(sql, (client_name, tax_id, per_page, (page - 1) * per_page) if client_name and tax_id else (client_name or tax_id, per_page, (page - 1) * per_page) if client_name or tax_id else (per_page, (page - 1) * per_page))
+
+            archived_requests = cursor.fetchall()
+            app.logger.info(archived_requests)
+    except Exception as e:
+        app.logger.error(f"An error occurred: {e}")
+        archived_requests = []
+        total_requests = 0
+
+    return render_template('archived_requests.html', archived_requests=archived_requests, page=page, per_page=per_page, total_requests=total_requests)
+
+'''@app.route('/archived_requests', methods=['GET'])
+def archived_requests():
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    company = request.args.get('company', '')
+    tax_id = request.args.get('tax_id', '')
+    serial_number = request.args.get('serial_number', '')
+
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = """
+            SELECT COUNT(*) FROM service_requests
+            JOIN clients ON service_requests.tax_id = clients.tax_id
+            JOIN printers ON service_requests.printer_id = printers.id
+            WHERE service_requests.active = 0
+            AND clients.company LIKE %s
+            AND clients.tax_id LIKE %s
+            AND printers.serial_number LIKE %s
+            """
+
+            cursor.execute(sql, ('%' + company + '%', '%' + tax_id + '%', '%' + serial_number + '%'))
+            result = cursor.fetchone()
+            total_requests = result[0] if result is not None else 0
+
+            sql = """
+            SELECT 
+                service_requests.service_request AS service_request,
+                clients.company AS company,
+                printers.serial_number AS serial_number,
+                printers.model AS model,
+                service_requests.request_date AS request_date,
+                users.name AS assigned_to
+            FROM service_requests
+            JOIN clients ON service_requests.tax_id = clients.tax_id
+            JOIN printers ON service_requests.printer_id = printers.id
+            JOIN users ON service_requests.assigned_to = users.id
+            WHERE service_requests.active = 0
+            AND clients.company LIKE %s
+            AND clients.tax_id LIKE %s
+            AND printers.serial_number LIKE %s
+            LIMIT %s OFFSET %s
+            """
+
+            cursor.execute(sql, ('%' + company + '%', '%' + tax_id + '%', '%' + serial_number + '%', per_page, (page - 1) * per_page))
+
+            archived_requests = cursor.fetchall()
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        archived_requests = []
+        total_requests = 0
+
+    return render_template('archived_requests.html', archived_requests=archived_requests, page=page, per_page=per_page, total_requests=total_requests)'''
+
 
 @app.route('/delete_client/<string:tax_id>', methods=['POST'])
 @login_required

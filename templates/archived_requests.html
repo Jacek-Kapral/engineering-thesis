@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% set page = page if page is defined else 1 %}
+{% set per_page = per_page if per_page is defined else 10 %}
+
+<div class="center-container">
+  <h2>Archived Service Requests</h2>
+</div>
+<div class="center-container">
+  <form method="GET" action="{{ url_for('archived_requests') }}">
+    <input type="text" id="client_name" name="client_name" placeholder="Client Name">
+    <input type="text" id="tax_id" name="tax_id" placeholder="Tax ID">
+    <input type="submit" value="Filter">
+  </form>
+</div>
+
+
+{% if archived_requests %}
+  <table class="styled-table">
+      <tr>
+        <th>Service Request</th>
+        <th>Date</th>
+        <th>Assigned to:</th>
+        <th>Client</th>
+        <th>Printer Serial Number</th>
+      </tr>
+      {% for request in archived_requests %}
+      <tr>
+        <td>{{ request.service_request }}</td>
+        <td>{{ request.request_date }}</td>
+        <td>{{ request.assigned_to }}</td>
+        <td>{{ request.client_name }}</td>
+        <td>{{ request.printer_serial_number }}</td>
+      </tr>
+      {% endfor %}
+  </table>
+  <div class="pagination">
+    <a href="{{ url_for('archived_requests', page=1) }}">First..</a>&nbsp;
+    {% if page > 1 %}
+    <a href="{{ url_for('archived_requests', page=page-1) }}">..Previous..</a>&nbsp;
+    {% endif %}
+    <span>..Page {{ page }}..</span>&nbsp;
+    {% if page * per_page < total_requests %}
+    <a href="{{ url_for('archived_requests', page=page+1) }}">..Next</a>
+    {% endif %}
+  </div>
+{% else %}
+  <p class="margin-left">No archived service requests.</p>
+{% endif %}
+
+{% endblock %}
