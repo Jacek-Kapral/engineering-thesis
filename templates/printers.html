@@ -7,7 +7,10 @@
 </div>
 
 <div class="center-container">
-  <input type="text" id="filterInput" onkeyup="filterTable()" placeholder="Filter: serial numbers...">
+  <form method="GET" action="/printers">
+    <input type="text" name="filter" placeholder="Filter: serial numbers..." value="{{ request.args.get('filter', '') }}">
+    <input type="submit" value="Filter">
+  </form>
 </div>
 
 <form method="POST" action="/edit_printer">
@@ -44,27 +47,5 @@
     <a href="{{ url_for('printers', page=page+1) }}">..Next</a>
   </div>
 </form>
-
-<script>
-function filterTable() {
-  var input, filter, table, tr, td, i, txtValue;
-  input = document.getElementById("filterInput");
-  filter = input.value.toUpperCase();
-  table = document.getElementById("printersTable");
-  tr = table.getElementsByTagName("tr");
-
-  for (i = 0; i < tr.length; i++) {
-    td = tr[i].getElementsByTagName("td")[2];
-    if (td) {
-      txtValue = td.textContent || td.innerText;
-      if (txtValue.toUpperCase().indexOf(filter) > -1) {
-        tr[i].style.display = "";
-      } else {
-        tr[i].style.display = "none";
-      }
-    }       
-  }
-}
-</script>
 
 {% endblock %}

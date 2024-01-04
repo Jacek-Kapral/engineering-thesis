@@ -1,10 +1,12 @@
 import configparser
 import os
+import logging
 from functools import wraps
 from flask import Flask, render_template, request, session, g, redirect, url_for, flash, get_flashed_messages, abort, jsonify
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from pymysql.err import IntegrityError
+from datetime import datetime
 import pymysql
 import json
 import logging
@@ -17,13 +19,19 @@ config.read('config.ini')
 
 flask_env = config['flask']['env']
 flask_app = config['flask']['app']
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 app.config['ENV'] = flask_env
 app.secret_key = os.environ.get('SECRET_KEY')
 
+app.jinja_env.auto_reload = True
+
+
 class User(UserMixin):
     def __init__(self, id, username, password_hash, admin, email):
+        if not isinstance(id, int):
+            raise ValueError('id must be an integer')
         self.id = id
         self.username = username
         self.password_hash = password_hash
@@ -53,6 +61,11 @@ def get_db_connection():
                            cursorclass=pymysql.cursors.DictCursor)
 
 def get_user_by_id(user_id):
+    try:
+        user_id = int(user_id)
+    except ValueError:
+        return None
+
     connection = get_db_connection()
     with connection.cursor() as cursor:
         sql = "SELECT * FROM users WHERE id = %s"
@@ -86,6 +99,7 @@ def home():
 
 @login_manager.user_loader
 def load_user(user_id):
+    user_id = int(user_id)
     connection = get_db_connection()
     with connection.cursor() as cursor:
         sql = "SELECT * FROM users WHERE id = %s"
@@ -148,6 +162,7 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
+        user_id = int(user_id)
         connection = get_db_connection()
         with connection.cursor() as cursor:
             sql = "SELECT * FROM users WHERE id = %s"
@@ -156,7 +171,6 @@ def load_logged_in_user():
 
 @app.before_request
 def require_login():
-    print("Checking if login is required")
     allowed_routes = ['register_admin', 'login', 'static', 'home', 'logout']
     if not current_user.is_authenticated and request.endpoint not in allowed_routes:
         print("Redirecting to login")
@@ -177,10 +191,10 @@ def login():
             user_data = cursor.fetchone()
 
         if user_data and check_password_hash(user_data['password'], password):
+            if not isinstance(user_data['id'], int):
+                raise ValueError('user id must be an integer')
             user = User(user_data['id'], user_data['login'], user_data['password'], user_data['admin'], user_data['email'])
-
             login_user(user)
-
             return redirect(url_for('index'))
         else:
             flash('Invalid username or password', 'danger')
@@ -266,6 +280,7 @@ def add_printer():
 @admin_required
 def printers():
     page = request.args.get('page', 1, type=int)
+    filter_query = request.args.get('filter', '')
     per_page = 10
     offset = (page - 1) * per_page
     try: # for debugging purposes
@@ -275,12 +290,12 @@ def printers():
             SELECT printers.id, printers.serial_number, printers.model, printers.black_counter, printers.color_counter, clients.company
             FROM printers
             LEFT JOIN clients ON printers.tax_id = clients.tax_id
+            WHERE printers.serial_number LIKE %s OR printers.model LIKE %s
             ORDER BY printers.id
             LIMIT %s OFFSET %s
             """
-            cursor.execute(sql, (per_page, offset))
+            cursor.execute(sql, ('%' + filter_query + '%', '%' + filter_query + '%', per_page, offset))
             printers = cursor.fetchall()
-            print(printers)
 
         return render_template('printers.html', printers=printers, page=page)
     except Exception as e: # for debugging purposes
@@ -342,7 +357,6 @@ def edit_printer(printer_id):
             printer = cursor.fetchone()
             if printer is not None:
                 printer = dict(printer)
-            print(printer)
 
             sql = "SELECT * FROM clients"
             cursor.execute(sql)
@@ -448,7 +462,7 @@ def edit_client(tax_id):
             SET tax_id = %s, company = %s, city = %s, postal_code = %s, address = %s, phone = %s, email = %s
             WHERE id = %s
             """
-            cursor.execute(sql, (tax_id, company, city, postal_code, address, phone, email, tax_id))
+            cursor.execute(sql, (tax_id, company, city, postal_code, address, phone, email, client['id']))
         connection.commit()
 
         flash('Client details updated successfully.', 'success')
@@ -549,22 +563,95 @@ def service_requests():
     page = request.args.get('page', 1, type=int)
     per_page = 10 
     offset = (page - 1) * per_page
-    try: # for debugging purposes
+    try:
         connection = get_db_connection()
         with connection.cursor() as cursor:
             sql = """
-            SELECT * FROM service_requests
-            ORDER BY request_date DESC
-            LIMIT %s OFFSET %s
+            SELECT service_requests.*, printers.serial_number, printers.model, clients.company
+            FROM service_requests
+            JOIN printers ON service_requests.printer_id = printers.id
+            JOIN clients ON printers.tax_id = clients.tax_id
+            ORDER BY service_requests.request_date DESC
             """
-            cursor.execute(sql, (per_page, offset))
-            service_requests = cursor.fetchall()
-            print(service_requests)
+            cursor.execute(sql)
+            raw_service_requests = cursor.fetchall()
+            app.logger.info(f'Example service request row: {raw_service_requests[0]}')
 
-        return render_template('service_requests.html', service_requests=service_requests, page=page)
-    except Exception as e: # for debugging purposes
-        print(f"An error occurred when executing the SQL query: {e}")
-        return render_template('service_requests.html', service_requests=[], page=1)
+            if all(isinstance(row, dict) for row in raw_service_requests):
+                service_requests = {row['id']: row for row in raw_service_requests}
+            else:
+                app.logger.error(f"Unexpected row type in raw_service_requests. Rows are not dictionaries.")
+
+            cursor.execute("SELECT * FROM users")
+            raw_users = cursor.fetchall()
+            app.logger.info(f'Example user row: {raw_users[0]}')
+
+            if all(isinstance(row, dict) for row in raw_users):
+                users = {row['id']: row for row in raw_users}
+                app.logger.info(f'users: {users}')
+            else:
+                app.logger.error(f"Unexpected row type in raw_users. Rows are not dictionaries.")
+
+            # Calculate total_requests
+            cursor.execute("SELECT COUNT(*) FROM service_requests")
+            total_requests = cursor.fetchone()['COUNT(*)']
+            result = cursor.fetchone()
+            app.logger.info(f'Result of COUNT query: {result}')
+
+        app.logger.info(f'service_requests: {service_requests}')
+        return render_template('service_requests.html', service_requests=service_requests, users=users)
+    except Exception as e:
+        app.logger.error(f"An error occurred when executing the SQL query: {e}")
+        return render_template('service_requests.html', page=page, per_page=per_page, total_requests=total_requests, service_requests=service_requests, users=users)   
+
+'''@app.route('/service_requests', methods=['GET'])
+@admin_required
+def service_requests():
+    # page = request.args.get('page', 1, type=int)
+    # per_page = 10 
+    # offset = (page - 1) * per_page
+    try:
+        connection = get_db_connection()
+        with connection.cursor() as cursor:
+            sql = """
+            SELECT service_requests.*, printers.serial_number, printers.model, clients.company
+            FROM service_requests
+            JOIN printers ON service_requests.printer_id = printers.id
+            JOIN clients ON printers.tax_id = clients.tax_id
+            ORDER BY service_requests.request_date DESC
+            """
+            #             -- LIMIT %s OFFSET %s
+            # cursor.execute(sql, (per_page, offset))
+            cursor.execute(sql)
+            service_requests_columns = [column[0] for column in cursor.description]
+            raw_service_requests = cursor.fetchall()
+
+            if all(isinstance(row, dict) for row in raw_service_requests):
+                service_requests = {row['id']: row for row in raw_service_requests}
+            else:
+                app.logger.error(f"Unexpected row type in raw_service_requests. Rows are not dictionaries.")
+
+            cursor.execute("SELECT * FROM users")
+            users_columns = [column[0] for column in cursor.description]
+            raw_users = cursor.fetchall()
+            app.logger.info(f'raw_users: {raw_users}')
+
+            if all(isinstance(row, dict) for row in raw_users):
+                users = {row['id']: row for row in raw_users}
+                app.logger.info(f'users: {users}')
+            else:
+                app.logger.error(f"Unexpected row type in raw_users. Rows are not dictionaries.")
+
+            # cursor.execute("SELECT COUNT(*) FROM service_requests")
+            # fetchone_result = cursor.fetchone()
+            # total_requests = fetchone_result['COUNT(*)'] if fetchone_result is not None else 0
+
+        # return render_template('service_requests.html', service_requests=service_requests, page=page, users=users, total_requests=total_requests)
+        return render_template('service_requests.html', service_requests=service_requests, users=users)
+    except Exception as e:
+        app.logger.error(f"An error occurred when executing the SQL query: {e}")
+        # return render_template('service_requests.html', service_requests=[], page=1, users=[])
+        return render_template('service_requests.html', service_requests=[], users=[])'''
 
 @app.route('/new_service_request', methods=['GET'])
 @login_required
@@ -583,6 +670,18 @@ def submit_service_request():
     service_request = request.form.get('service_request')
     printer_id = request.form.get('printer_id')
     tax_id = request.form.get('tax_id')
+
+    # Check if service_request and tax_id are strings
+    if not isinstance(service_request, str) or not isinstance(tax_id, str):
+        flash('Invalid service request or company tax ID', 'error')
+        return redirect(url_for('service_requests'))
+
+    try:
+        # Check if printer_id is an integer
+        printer_id = int(printer_id)
+    except ValueError:
+        flash('Invalid printer ID', 'error')
+        return redirect(url_for('service_requests'))
 
     connection = get_db_connection()
     with connection.cursor() as cursor:
@@ -624,6 +723,17 @@ def create_service_request():
     printer_id = request.form.get('printer_id')
     service_request = request.form.get('service_request')
 
+    if not isinstance(tax_id, str):
+        flash('Invalid company tax ID', 'error')
+        return redirect(url_for('new_service_request'))
+
+    try:
+        printer_id = int(printer_id)
+        service_request = str(service_request)
+    except ValueError:
+        flash('Invalid printer ID or service request ID', 'error')
+        return redirect(url_for('new_service_request'))
+
     connection = get_db_connection()
     with connection.cursor() as cursor:
         sql = "SELECT * FROM clients WHERE tax_id = %s"
@@ -648,13 +758,26 @@ def create_service_request():
 
     return redirect(url_for('service_requests'))
 
+
 @app.route('/assign_user', methods=['POST'])
-@login_required
+@admin_required
 def assign_user():
-    request_id = request.form.get('request_id')
     user_id = request.form.get('user_id')
+    request_id = request.form.get('request_id')
+
+    if not user_id or not request_id:
+        flash('Missing user_id or request_id', 'error')
+        return redirect(url_for('service_requests'))
+
+    try:
+        user_id = int(user_id)
+        request_id = int(request_id)
+    except ValueError:
+        flash('Invalid user_id or request_id', 'error')
+        return redirect(url_for('service_requests'))
 
     connection = get_db_connection()
+
     with connection.cursor() as cursor:
         sql = "UPDATE service_requests SET assigned_to = %s WHERE id = %s"
         cursor.execute(sql, (user_id, request_id))
@@ -665,6 +788,9 @@ def assign_user():
 @app.route('/my_requests', methods=['GET'])
 @login_required
 def my_requests():
+    if not isinstance(current_user.id, int):
+        abort(400, description="User id must be an integer")
+
     connection = get_db_connection()
     with connection.cursor() as cursor:
         sql = """
@@ -682,6 +808,7 @@ def my_requests():
 @app.route('/delete_request/<int:id>', methods=['POST'])
 @admin_required
 def delete_request(id):
+    app.logger.info(f"id: {id}") # for debugging purposes
     try: # for debugging purposes
         connection = get_db_connection()
         with connection.cursor() as cursor:

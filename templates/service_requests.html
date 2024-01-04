@@ -35,26 +35,26 @@
         <th>Assigned to:</th>
         <th>Delete?</th>
       </tr>
-      {% for request in service_requests %}
+      {% for request_id, request in service_requests.items() %}
       <tr>
         <td>{{ request.service_request }}</td>
         <td>{{ request.company }}</td>
         <td>{{ request.serial_number }}</td>
         <td>{{ request.model }}</td>
-        <td>{{ request.request_date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        <td>{{ request.request_date }}</td>
         <td>
           <form action="{{ url_for('assign_user') }}" method="post">
             <select name="user_id">
-              {% for user in users %}
+              {% for user in users.values() %}
                 <option value="{{ user.id }}" {% if user.id == request.assigned_to %}selected{% endif %}>{{ user.login }}</option>
               {% endfor %}
             </select>
-            <input type="hidden" name="request_id" value="{{ request.id }}">
+            <input type="hidden" name="request_id" value="{{ request_id }}">
             <button type="submit" class="button-group">Assign</button>
           </form>
         </td>
         <td>
-          <form action="{{ url_for('delete_request', id=request.id) }}" method="post" onsubmit="return confirm('Are you sure you want to delete this service request?');">
+          <form action="{{ url_for('delete_request', id=request_id) }}" method="post" onsubmit="return confirm('Are you sure you want to delete this service request?');">
             <input type="image" src="{{ url_for('static', filename='img/del_ico.png') }}" alt="Delete" style="display: block; margin: auto;">
           </form>
         </td>
@@ -67,7 +67,9 @@
     <a href="{{ url_for('service_requests', page=page-1) }}">..Previous..</a>&nbsp;
     {% endif %}
     <span>..Page {{ page }}..</span>&nbsp;
+    {% if page * per_page < total_requests %}
     <a href="{{ url_for('service_requests', page=page+1) }}">..Next</a>
+    {% endif %}
   </div>
 {% else %}
   <p class="margin-left">No active service requests.</p>
