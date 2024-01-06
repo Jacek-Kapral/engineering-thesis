@@ -1,9 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>New Service Request for Printer: {{ printer.serial_number }} assigned to {{ clients.company }}</h2>
+<div class="center-container">
+  <h3>New Service Request for Printer: {{ printer.serial_number }} assigned to {{ clients.company }}</h3>
+</div>
 
-<table>
+<table class="styled-table">
   <tr>
     <td>Serial Number: {{ printer.serial_number }}</td>
     <td>Model: {{ printer.model }}</td>
@@ -13,7 +15,7 @@
     <td>Color Counter: {{ printer.color_counter }}</td>
   </tr>
   <tr>
-    <td colspan="2">Client Company: {{ clients.company }}</td>
+    <td colspan="2">Client Company Name: {{ clients.company }}</td>
   </tr>
 </table>
 
@@ -27,9 +29,7 @@
   <input type="hidden" name="company" value="{{ clients.company }}">
   <div class="button-group">
     <button type="submit">Submit</button>
+    <button type="button" onclick="location.href='{{ url_for('client_printers', tax_id=printer.tax_id) }}';">Back to Client Printers</button>
   </div>
 </form>
-<div class="button-group">
-  <button type="button" class="margin-top:20%" onclick="location.href='{{ url_for('client_printers', tax_id=printer.tax_id) }}';">Back to Client Printers</button>
-</div>
 {% endblock %}

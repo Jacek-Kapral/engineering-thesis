@@ -8,8 +8,12 @@
 
 <div class="center-container">
   <form method="GET" action="/printers">
-    <input type="text" name="filter" placeholder="Filter: serial numbers..." value="{{ request.args.get('filter', '') }}">
-    <input type="submit" value="Filter">
+    <div class="form-item">
+      <input type="text" name="filter" placeholder="Filter: serial numbers..." value="{{ request.args.get('filter', '') }}">
+    </div>
+    <div class="button-group">
+      <button type="submit">Filter</button>
+    </div>
   </form>
 </div>
 
@@ -35,9 +39,6 @@
     {% endfor %}
   </table>
 
-  <div class="button-group">
-    <a href="/index"><button type="button">Back</button></a>
-  </div>
   <div class="pagination">
     <a href="{{ url_for('printers', page=1) }}">First..</a>&nbsp;
     {% if page > 1 %}

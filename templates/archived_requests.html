@@ -9,9 +9,15 @@
 </div>
 <div class="center-container">
   <form method="GET" action="{{ url_for('archived_requests') }}">
-    <input type="text" id="client_name" name="client_name" placeholder="Client Name">
-    <input type="text" id="tax_id" name="tax_id" placeholder="Tax ID">
-    <input type="submit" value="Filter">
+    <div class="form-item">
+      <input type="text" id="client_name" name="client_name" placeholder="Client Name">
+    </div>
+    <div class="form-item">
+      <input type="text" id="tax_id" name="tax_id" placeholder="Tax ID">
+    </div>
+    <div class="button-group">
+      <button type="submit">Filter</button>
+    </div>
   </form>
 </div>
 

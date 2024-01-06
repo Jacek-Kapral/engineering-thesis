@@ -7,7 +7,9 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from werkzeug.security import generate_password_hash, check_password_hash
 from pymysql.err import IntegrityError
 from datetime import datetime
+from pygal.style import Style
 import pymysql
+import pygal
 import json
 import logging
 
@@ -266,7 +268,16 @@ def add_printer():
             printer_id = cursor.lastrowid
             connection.commit()
 
-        flash('Printer and contract added.', 'success')
+        # Insert initial print history for the new printer
+        with connection.cursor() as cursor:
+            sql = """
+            INSERT INTO print_history (printers_id, date, counter_black_history, counter_color_history)
+            VALUES (%s, %s, %s, %s)
+            """
+            cursor.execute(sql, (printer_id, datetime.now(), counter_black, counter_color))
+            connection.commit()
+
+        flash('Printer, contract, and initial print history added.', 'success')
         return redirect(url_for('index'))
     else:
         with connection.cursor() as cursor:
@@ -368,10 +379,17 @@ def edit_printer(printer_id):
 def delete_printer(printer_id):
     connection = get_db_connection()
     with connection.cursor() as cursor:
+        sql = "DELETE FROM print_history WHERE printers_id = %s"
+        cursor.execute(sql, (printer_id,))
+        
+        sql = "DELETE FROM service_requests WHERE printer_id = %s"
+        cursor.execute(sql, (printer_id,))
+        
         sql = "DELETE FROM printers WHERE id = %s"
         cursor.execute(sql, (printer_id,))
+        
     connection.commit()
-    flash('Printer deleted successfully.', 'success')
+    flash('Printer, associated service requests, and print history deleted successfully.', 'success')
     return redirect(url_for('index'))
 
     
@@ -514,13 +532,45 @@ def printer_info(printer_id):
         sql = """
         SELECT printers.*, clients.company 
         FROM printers 
-        LEFT JOIN contracts ON printers.id = contracts.printer_id 
-        LEFT JOIN clients ON contracts.tax_id = clients.tax_id 
+        LEFT JOIN clients ON printers.tax_id = clients.tax_id 
         WHERE printers.id = %s
         """
         cursor.execute(sql, (printer_id,))
         printer = cursor.fetchone()
-    return render_template('printer_info.html', printer=printer)
+
+        sql = """
+        SELECT * FROM service_requests 
+        WHERE printer_id = %s
+        """
+        cursor.execute(sql, (printer_id,))
+        service_requests = cursor.fetchall()
+
+        sql = """
+        SELECT * FROM print_history 
+        WHERE printers_id = %s
+        """
+        cursor.execute(sql, (printer_id,))
+        print_history = cursor.fetchall()
+
+        custom_style = Style(
+            colors=('#545454', '#80bdff'),
+        )
+        line_chart = pygal.Line(style=custom_style, height=400, width=600, legend_at_bottom=True, show_legend=True)
+        line_chart.title = 'Print History (X-axis: Date, Y-axis: Count)'
+
+        dates = [history['date'] for history in print_history]
+        black_counters = [history['counter_black_history'] for history in print_history]
+        color_counters = [history['counter_color_history'] for history in print_history]
+        line_chart.x_labels = dates
+        line_chart.add('Black Counter', black_counters)
+        line_chart.add('Color Counter', color_counters)
+
+        graph_svg = line_chart.render()
+
+        # Decode the SVG data
+        graph_svg = graph_svg.decode('utf-8')
+
+        return render_template('printer_info.html', printer=printer, service_requests=service_requests, print_history=print_history, graph_svg=graph_svg)
 
 @app.route('/users')
 @admin_required
@@ -580,39 +630,22 @@ def service_requests():
             """
             cursor.execute(sql, (per_page, offset))
             raw_service_requests = cursor.fetchall()
-            # app.logger.info(f"Type of raw_service_requests: {type(raw_service_requests)}, value of raw_service_requests: {raw_service_requests}")
-            # app.logger.info(f"Value of per_page: {per_page}, value of offset: {offset}")
 
             if all(isinstance(row, dict) for row in raw_service_requests):
                 service_requests = {row['id']: row for row in raw_service_requests}
-            else:
-                # app.logger.error(f"Unexpected row type in raw_service_requests. Rows are not dictionaries.")
 
             cursor.execute("SELECT * FROM users")
             raw_users = cursor.fetchall()
-            # app.logger.info(f"Login of first user: {raw_users[0]['login']}")
 
             if all(isinstance(row, dict) for row in raw_users):
                 users = {row['id']: row for row in raw_users}
-                # app.logger.info(f'users: {users}')
-            else:
-                # app.logger.error(f"Unexpected row type in raw_users. Rows are not dictionaries.")
-            
-            # if raw_users:
-                # app.logger.info(f"Login of first user: {raw_users[0]['login']}")
-            # else:
-                # app.logger.info("No users found.")
 
             cursor.execute("SELECT COUNT(*) FROM service_requests WHERE active = TRUE")
-            total_requests = cursor.fetchone()['COUNT(*)']
             result = cursor.fetchone()
             total_requests = result[0] if result is not None else 0
-            # app.logger.info(f'Result of COUNT query: {result}')
 
-        # app.logger.info(f'service_requests: {service_requests}')
         return render_template('service_requests.html', service_requests=service_requests, users=users)
     except Exception as e:
-        # app.logger.error(f"An error occurred when executing the SQL query: {e}")
         return render_template('service_requests.html', page=page, per_page=per_page, total_requests=total_requests, service_requests=service_requests, users=users) 
 
 @app.route('/new_service_request', methods=['GET'])

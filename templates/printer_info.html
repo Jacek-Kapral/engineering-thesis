@@ -5,10 +5,41 @@
     <h2>Printer Information: {{ printer.serial_number }}</h2>
 </div>
 
-<p>Serial Number: {{ printer.serial_number }}</p>
-<p>Black Counter: {{ printer.black_counter }}</p>
-<p>Color Counter: {{ printer.color_counter }}</p>
-<p>Model: {{ printer.model }}</p>
-<p>Assigned to: {{ printer.company }}</p>
-<p>Additional Info: {{ printer.additional_info }}</p>
+<div class="center-container">
+    {{ graph_svg|safe }}
+</div>
+
+<table>
+  <tr>
+    <th>Serial Number</th>
+    <td>{{ printer.serial_number }}</td>
+    <th>Model</th>
+    <td>{{ printer.model }}</td>
+  </tr>
+  <tr>
+    <th>Initial Black Counter</th>
+    <td>{{ printer.black_counter }}</td>
+    <th>Initial Color Counter</th>
+    <td>{{ printer.color_counter }}</td>
+  </tr>
+  <tr>
+    <th>Assigned to</th>
+    <td colspan="3">{{ printer.company }}</td>
+  </tr>
+  <tr>
+    <th>Additional Info</th>
+    <td colspan="3">{{ printer.additional_info }}</td>
+  </tr>
+</table>
+
+<h3>Service Requests</h3>
+{% for request in service_requests %}
+<p>Date: {{ request.request_date }}, Problem: {{ request.service_request }}</p>
+{% endfor %}
+
+<h3>Print History</h3>
+{% for history in print_history %}
+<p>Date: {{ history.date }}, Black Counter: {{ history.counter_black_history }}, Color Counter: {{ history.counter_color_history }}</p>
+{% endfor %}
+
 {% endblock %}
