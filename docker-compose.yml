@@ -28,3 +28,24 @@ services:
       - db
     environment:
       - SECRET_KEY=${SECRET_KEY}
+
+  mailparser:
+    build: 
+      context: .
+      dockerfile: Dockerfile-mailparser
+    command: python mailparser.py
+    volumes:
+      - temp-data:/app/temp
+
+  databroker:
+    build: 
+      context: .
+      dockerfile: Dockerfile-databroker
+    command: python databroker.py
+    volumes:
+      - temp-data:/app/temp
+    depends_on:
+      - db
+
+volumes:
+  temp-data:

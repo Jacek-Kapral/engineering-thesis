@@ -8,3 +8,4 @@ venv/
 *.sqlite
 config.ini
 .env
+/temp/*.txt

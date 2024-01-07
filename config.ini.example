@@ -2,16 +2,10 @@
 # needed for credentials and environment variables
 #
 # Use this template to create Your own config.ini 
-# file with data required for the app to work,
+# file with data required for the flask app to work,
 # like keys with database credentials, environment
 # variables and so on.
 
 [flask]
 env = development
 app = app.py
-
-[database]
-host = db
-user = youruser
-password = yourpassword
-database = yourdatabase

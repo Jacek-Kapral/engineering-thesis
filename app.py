@@ -11,6 +11,7 @@ from pymysql.err import IntegrityError
 from datetime import datetime
 from pygal.style import Style
 from weasyprint import HTML
+from dotenv import load_dotenv
 import pymysql
 import pygal
 import json
@@ -19,6 +20,7 @@ import logging
 with open('printer_models.json') as f:
     printer_models_from_file = json.load(f)
 
+load_dotenv()
 config = configparser.ConfigParser()
 config.read('config.ini')
 
@@ -64,14 +66,13 @@ for model, prefixes in printer_models_from_file.items():
         printer_models[prefix] = model
 
 def get_db_connection():
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-
-    return pymysql.connect(host=config['database']['host'],
-                           user=config['database']['user'],
-                           password=config['database']['password'],
-                           database=config['database']['database'],
-                           cursorclass=pymysql.cursors.DictCursor)
+    return pymysql.connect(
+        host=os.getenv('MYSQL_DB_HOST'),
+        user=os.getenv('MYSQL_DB_USER'),
+        password=os.getenv('MYSQL_ROOT_PASSWORD'),
+        db=os.getenv('MYSQL_DATABASE'),
+        cursorclass=pymysql.cursors.DictCursor
+    )
 
 def get_user_by_id(user_id):
     try:
