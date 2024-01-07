@@ -1,6 +1,8 @@
 Flask==3.0.0
+Flask-login==0.6.3
+Flask-Mail==0.9.1
 PyMySQL==1.1.0
 python-dotenv==0.19.0
 cryptography==3.4.8
-Flask-login==0.6.3
 pygal
+WeasyPrint==52.5

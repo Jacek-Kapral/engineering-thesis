@@ -2,12 +2,15 @@ import configparser
 import os
 import logging
 from functools import wraps
-from flask import Flask, render_template, request, session, g, redirect, url_for, flash, get_flashed_messages, abort, jsonify
+from flask import Flask, render_template, request, session, g, redirect, url_for, flash, get_flashed_messages, abort, jsonify, make_response
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_mail import Mail, Message
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 from werkzeug.security import generate_password_hash, check_password_hash
 from pymysql.err import IntegrityError
 from datetime import datetime
 from pygal.style import Style
+from weasyprint import HTML
 import pymysql
 import pygal
 import json
@@ -26,6 +29,14 @@ logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 app.config['ENV'] = flask_env
 app.secret_key = os.environ.get('SECRET_KEY')
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
+app.config['MAIL_PORT'] = os.getenv('MAIL_PORT')
+app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL') == 'True'
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+
+mail = Mail(app)
+s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
 app.jinja_env.auto_reload = True
 
@@ -112,6 +123,8 @@ def load_user(user_id):
     else:
         return None
 
+from flask_mail import Message
+
 @app.route('/register_admin', methods=['GET', 'POST'])
 def register_admin():
     connection = get_db_connection()
@@ -127,11 +140,25 @@ def register_admin():
         login = request.form['login']
         password = generate_password_hash(request.form['password'])
         email = request.form['email']
+        company_name = request.form['company_name']
+        tax_id = request.form['tax_id']
+        address = request.form['address']
+        postal_code = request.form['postal_code']
+        city = request.form['city']
+        phone = request.form['phone']
+        company_email = request.form['company_email']
 
         with connection.cursor() as cursor:
             sql = "INSERT INTO users(login, password, admin, email) VALUES (%s, %s, %s, %s)"
             cursor.execute(sql, (login, password, True, email))
+            sql = "INSERT INTO my_company(company_name, tax_id, address, postal_code, city, phone, email) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            cursor.execute(sql, (company_name, tax_id, address, postal_code, city, phone, company_email))
         connection.commit()
+
+        # Send email
+        msg = Message('Admin account created', sender='noreply@example.com', recipients=[email])
+        msg.body = f"Hello,\nYou've just registered Your admin account in Printer Fleet Manager App, \nusing given email address, with following data about Your company:\n{ tax_id }\n{ company_name }\n{ address }\n{ postal_code } { city }\n{ phone }\n{ company_email }\nHave a nice experience managing Your printer fleet!"
+        mail.send(msg)
 
         return redirect(url_for('login'))
 
@@ -145,6 +172,39 @@ def admin_required(f):
             return redirect(url_for('index'))
         return f(*args, **kwargs)
     return decorated_function
+
+@app.route('/reset_password', methods=['GET', 'POST'])
+def reset_password():
+    if request.method == 'POST':
+        email = request.form['email']
+        connection = get_db_connection()
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM users WHERE email = %s AND admin = 1"
+            cursor.execute(sql, (email,))
+            admin = cursor.fetchone()
+
+        if admin is None:
+            flash('No admin account found with the provided email.', 'danger')
+            return redirect(url_for('reset_password'))
+
+        token = s.dumps(email, salt='email-confirm')
+        msg = Message('Password reset token', sender='noreply@example.com', recipients=[email])
+        msg.body = 'Your password reset token is {}'.format(token)
+        mail.send(msg)
+        return 'Email sent!'
+    return render_template('admpassreset.html')
+
+@app.route('/confirm_reset/<token>', methods=['GET', 'POST'])
+def confirm_reset(token):
+    try:
+        email = s.loads(token, salt='email-confirm', max_age=3600)
+    except SignatureExpired:
+        return '<p>The token is expired!</p>'
+    if request.method == 'POST':
+        password = request.form['password']
+        hashed_password = generate_password_hash(password)
+        return 'Password reset!'
+    return render_template('confirmreset.html', token=token)
 
 @app.route('/index', methods=['GET'])
 def index():
@@ -173,7 +233,7 @@ def load_logged_in_user():
 
 @app.before_request
 def require_login():
-    allowed_routes = ['register_admin', 'login', 'static', 'home', 'logout']
+    allowed_routes = ['register_admin', 'login', 'static', 'home', 'logout', 'reset_password', 'confirm_reset']
     if not current_user.is_authenticated and request.endpoint not in allowed_routes:
         print("Redirecting to login")
         return redirect(url_for('login'))
@@ -550,9 +610,23 @@ def printer_info(printer_id):
         WHERE printers_id = %s
         """
         cursor.execute(sql, (printer_id,))
-        print_history = cursor.fetchall()
+        rows = cursor.fetchall()
+
+        print_history = []
+        for i in range(len(rows)):
+            row = rows[i]
+            if i > 0 and printer['contract_id'] is not None and printer['price_black'] is not None and printer['price_color'] is not None:
+                prev_row = rows[i - 1]
+                black_diff = row['counter_black_history'] - prev_row['counter_black_history']
+                color_diff = row['counter_color_history'] - prev_row['counter_color_history']
+                black_cost = black_diff * printer['price_black']
+                color_cost = color_diff * printer['price_color']
+                row['black_cost'] = black_cost
+                row['color_cost'] = color_cost
+            print_history.append(row)
 
         custom_style = Style(
+            font_family='Segoe UI',
             colors=('#545454', '#80bdff'),
         )
         line_chart = pygal.Line(style=custom_style, height=400, width=600, legend_at_bottom=True, show_legend=True)
@@ -567,7 +641,6 @@ def printer_info(printer_id):
 
         graph_svg = line_chart.render()
 
-        # Decode the SVG data
         graph_svg = graph_svg.decode('utf-8')
 
         return render_template('printer_info.html', printer=printer, service_requests=service_requests, print_history=print_history, graph_svg=graph_svg)
@@ -640,9 +713,9 @@ def service_requests():
             if all(isinstance(row, dict) for row in raw_users):
                 users = {row['id']: row for row in raw_users}
 
-            cursor.execute("SELECT COUNT(*) FROM service_requests WHERE active = TRUE")
+            cursor.execute("SELECT COUNT(*) as count FROM service_requests WHERE active = TRUE")
             result = cursor.fetchone()
-            total_requests = result[0] if result is not None else 0
+            total_requests = result['count'] if result is not None else 0
 
         return render_template('service_requests.html', service_requests=service_requests, users=users)
     except Exception as e:
@@ -876,61 +949,6 @@ def archived_requests():
 
     return render_template('archived_requests.html', archived_requests=archived_requests, page=page, per_page=per_page, total_requests=total_requests)
 
-'''@app.route('/archived_requests', methods=['GET'])
-def archived_requests():
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 10, type=int)
-    company = request.args.get('company', '')
-    tax_id = request.args.get('tax_id', '')
-    serial_number = request.args.get('serial_number', '')
-
-    connection = get_db_connection()
-    try:
-        with connection.cursor() as cursor:
-            sql = """
-            SELECT COUNT(*) FROM service_requests
-            JOIN clients ON service_requests.tax_id = clients.tax_id
-            JOIN printers ON service_requests.printer_id = printers.id
-            WHERE service_requests.active = 0
-            AND clients.company LIKE %s
-            AND clients.tax_id LIKE %s
-            AND printers.serial_number LIKE %s
-            """
-
-            cursor.execute(sql, ('%' + company + '%', '%' + tax_id + '%', '%' + serial_number + '%'))
-            result = cursor.fetchone()
-            total_requests = result[0] if result is not None else 0
-
-            sql = """
-            SELECT 
-                service_requests.service_request AS service_request,
-                clients.company AS company,
-                printers.serial_number AS serial_number,
-                printers.model AS model,
-                service_requests.request_date AS request_date,
-                users.name AS assigned_to
-            FROM service_requests
-            JOIN clients ON service_requests.tax_id = clients.tax_id
-            JOIN printers ON service_requests.printer_id = printers.id
-            JOIN users ON service_requests.assigned_to = users.id
-            WHERE service_requests.active = 0
-            AND clients.company LIKE %s
-            AND clients.tax_id LIKE %s
-            AND printers.serial_number LIKE %s
-            LIMIT %s OFFSET %s
-            """
-
-            cursor.execute(sql, ('%' + company + '%', '%' + tax_id + '%', '%' + serial_number + '%', per_page, (page - 1) * per_page))
-
-            archived_requests = cursor.fetchall()
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        archived_requests = []
-        total_requests = 0
-
-    return render_template('archived_requests.html', archived_requests=archived_requests, page=page, per_page=per_page, total_requests=total_requests)'''
-
-
 @app.route('/delete_client/<string:tax_id>', methods=['POST'])
 @login_required
 def delete_client(tax_id):
@@ -958,6 +976,51 @@ def print_history():
         history = cursor.fetchall()
 
     return render_template('print_history.html', history=history)
+
+@app.route('/generate_pdf/<int:request_id>', methods=['GET', 'POST'])
+@login_required
+def generate_pdf(request_id):
+    connection = get_db_connection()
+    with connection.cursor() as cursor:
+        sql_company = """
+        SELECT company_name, tax_id, address, postal_code, city, email, phone
+        FROM my_company
+        WHERE id = 1
+        """
+        cursor.execute(sql_company)
+        company = cursor.fetchone()
+
+        sql_request = """
+        SELECT 
+            clients.company, clients.address, clients.postal_code, clients.city, clients.tax_id, clients.phone, clients.email,
+            printers.serial_number, printers.model, printers.additional_info,
+            (SELECT counter_black_history FROM print_history WHERE printers_id = printers.id ORDER BY date DESC LIMIT 1) as black_print_history,
+            (SELECT counter_color_history FROM print_history WHERE printers_id = printers.id ORDER BY date DESC LIMIT 1) as color_print_history,
+            service_requests.request_date, service_requests.service_request,
+            users.login
+        FROM 
+            service_requests
+        INNER JOIN 
+            clients ON service_requests.tax_id = clients.tax_id
+        INNER JOIN 
+            printers ON service_requests.printer_id = printers.id
+        INNER JOIN 
+            users ON service_requests.assigned_to = users.id
+        WHERE 
+            service_requests.id = %s
+        """
+        cursor.execute(sql_request, (request_id,))
+        request = cursor.fetchone()
+
+        html = render_template('report.html', company=company, request=request)
+
+        pdf = HTML(string=html).write_pdf()
+
+        response = make_response(pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = 'inline; filename=output.pdf'
+
+        return response
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)

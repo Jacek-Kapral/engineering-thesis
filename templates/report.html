@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Service Report</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 20mm;
+            padding: 20mm;
+            box-sizing: border-box;
+        }
+        .column {
+            float: left;
+            width: 50%;
+        }
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        .box {
+            border: 1px solid black;
+            height: 100px;
+            margin-left: 10px;
+            margin-top: 10px;
+        }
+        .column {
+        float: left;
+        width: 33.33%;
+        }
+    </style>
+</head>
+<body>
+    <div style="text-align: center;">
+        <p>{{ company.company_name }} ::  {{ company.address }} :: {{ company.postal_code }} {{ company.city }}</p>
+        <p>Tax id: {{ company.tax_id }} :: {{ company.email }} :: {{ company.phone }}</p>
+    </div>
+
+    <h2 style="text-align:center;">Service Report</h2>
+
+    <div class="row">
+        <div class="column">
+            <p><u>Client</u>:</p>
+            <p>{{ request.company }}</p>
+            <p>{{ request.address }}</p>
+            <p>{{ request.postal_code }} {{ request.city }}</p>
+            <p>{{ request.tax_id }}</p>
+            <p>{{ request.phone }}</p>
+            <p>{{ request.email }}</p>
+        </div>
+        <div class="column">
+            <p>      </p>
+            <!--dummy-->
+            <p>      </p>
+        </div>
+        <div class="column">
+            <p><u>Printer</u>:</p>
+            <p>S/N: {{ request.serial_number }}</p>
+            <p>Model: {{ request.model }}</p>
+            <p>B/W: {{ request.black_print_history }}</p>
+            <p>Color: {{ request.color_print_history }}</p>
+            <p>Additional info: {{ request.additional_info }}</p>
+        </div>
+    </div>
+
+    <hr>
+
+    <div style="display: block;">
+        <p>Request Date: {{ request.request_date }}</p>
+        <p>Problem: {{ request.service_request }}</p>
+    </div>
+    
+    <table style="width:100%; border: 1px solid black; margin-bottom: 20px;">
+        <tr>
+            <td>Description of work:</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td colspan="2" style="height: 100px;"></td>
+        </tr>
+    </table>
+    
+    <table style="width:100%; border: 1px solid black;">
+        <tr>
+            <td>Parts replaced:</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td colspan="2" style="height: 100px;"></td>
+        </tr>
+    </table>
+
+    <p>Estimated price: .................. </p>
+
+    <hr>
+
+    <div class="row">
+        <div class="column">
+            <p>Done by:</p>
+            <p>{{ request.login }}</p>
+        </div>
+        <div class="column">
+            <p>Date: </p>
+            <p>..................</p>
+        </div>
+        <div class="column">
+            <p>Client signature:</p>
+            <p>.........................</p>
+        </div>
+    </div>
+</body>
+</html>
