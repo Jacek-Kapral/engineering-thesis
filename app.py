@@ -124,7 +124,6 @@ def load_user(user_id):
     else:
         return None
 
-from flask_mail import Message
 
 @app.route('/register_admin', methods=['GET', 'POST'])
 def register_admin():
@@ -882,7 +881,13 @@ def mark_done():
         sql = "UPDATE service_requests SET active = FALSE WHERE id = %s"
         cursor.execute(sql, (request_id,))
         connection.commit()
-    return redirect(url_for('service_requests'))
+
+    user = get_user_by_id(current_user.get_id())
+
+    if user['admin'] == 1:
+        return redirect(url_for('service_requests'))
+    else:
+        return redirect(url_for('my_requests'))
 
 @app.route('/delete_request/<int:id>', methods=['POST'])
 @admin_required
