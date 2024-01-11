@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS service_requests (
     tax_id VARCHAR(255),
     printer_id INT,
     service_request VARCHAR(255),
+    times_happend INT DEFAULT 1,
     assigned_to INT,
     request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     active BOOLEAN DEFAULT TRUE,

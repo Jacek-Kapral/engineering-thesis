@@ -74,9 +74,20 @@ def process_file(file_path):
                 if match:
                     error = match.group(1).strip()
 
-                    # Insert the error into service_requests
-                    cursor.execute("INSERT INTO service_requests (printer_id, tax_id, service_request) VALUES (%s, %s, %s)",
-                                   (printer[0], printer[1], error))
+                    # Check if a service request with the same printer_id, service_request, and date already exists
+                    cursor.execute("SELECT id, times_happend FROM service_requests WHERE printer_id = %s AND service_request = %s AND DATE(request_date) = %s",
+                                (printer[0], error, date))
+                    service_request = cursor.fetchone()
+
+                    if service_request:  # If the service request exists
+                        # Increment the times_happend field
+                        cursor.execute("UPDATE service_requests SET times_happend = times_happend + 1 WHERE id = %s",
+                                    (service_request['id'],))
+                    else:
+                        # Insert the error into service_requests
+                        cursor.execute("INSERT INTO service_requests (printer_id, tax_id, service_request) VALUES (%s, %s, %s)",
+                                    (printer[0], printer[1], error))
+
                     db.commit()
 
     # Close the database connection
