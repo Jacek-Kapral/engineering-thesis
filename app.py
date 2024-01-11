@@ -156,7 +156,6 @@ def register_admin():
             cursor.execute(sql, (company_name, tax_id, address, postal_code, city, phone, company_email))
         connection.commit()
 
-        # Send email
         msg = Message('Admin account created', sender='noreply@example.com', recipients=[email])
         msg.body = f"Hello,\nYou've just registered Your admin account in Printer Fleet Manager App, \nusing given email address, with following data about Your company:\n{ tax_id }\n{ company_name }\n{ address }\n{ postal_code } { city }\n{ phone }\n{ company_email }\nHave a nice experience managing Your printer fleet!"
         mail.send(msg)
@@ -875,6 +874,7 @@ def my_requests():
     return render_template('my_requests.html', service_requests=service_requests)
 
 @app.route('/mark_done', methods=['POST'])
+@login_required
 def mark_done():
     request_id = request.form.get('request_id')
     connection = get_db_connection()

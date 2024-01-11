@@ -4,7 +4,8 @@
 # Use this template to create Your own config.ini 
 # file with data required for the flask app to work,
 # like keys with database credentials, environment
-# variables and so on.
+# variables and so on, You don't really need to change
+# anything here, unless You're looking to modify the app.
 
 [flask]
 env = development
