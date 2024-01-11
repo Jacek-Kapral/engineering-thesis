@@ -9,6 +9,9 @@ from email.header import decode_header
 from dotenv import load_dotenv
 import re
 from email.utils import parsedate_to_datetime
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def run_script():
     while True:
@@ -28,6 +31,12 @@ def run_script():
         mail.pass_(MAIL_PASSWORD)
 
         num_messages = len(mail.list()[1])
+
+        if num_messages == 0:
+            logging.info("Mailbox empty, skipping the process.")
+            mail.quit()
+            time.sleep(900)
+            continue
 
         saved_message_ids = set()
         if os.path.exists('temp/saved_message_ids.txt'):
@@ -66,11 +75,8 @@ def run_script():
                     saved_message_ids.add(message_id)
 
         mail.quit()
-
-        # Wait for 15 minutes (900 seconds)
         time.sleep(900)
 
 if __name__ == '__main__':
-    # Start a background thread for the script
     thread = threading.Thread(target=run_script)
     thread.start()
