@@ -106,73 +106,79 @@
 </form>
 
 <script>
-  var printerModels = {{ printer_models | tojson | safe }};
-  document.getElementById('printer_serial_number').addEventListener('input', function(e) {
-      var prefix = e.target.value.slice(0, 4);
-      if (!(prefix in printerModels)) {
-          prefix = e.target.value.slice(0, 6);
-      }
-      var model = printerModels[prefix] || 'Unknown model';
-      document.getElementById('model').value = model;
-  });
+var printerModels = {{ printer_models | tojson | safe }};
 
-  var warrantyCheckbox = document.getElementById('warranty');
-  var serviceContractCheckbox = document.getElementById('service_contract');
-  var warrantyDurationInput = document.getElementById('warranty_duration');
-  var leaseRentInput = document.getElementById('lease_rent');
-  var priceBlackInput = document.getElementById('price_black');
-  var priceColorInput = document.getElementById('price_color');
-  var contractDurationInput = document.getElementById('contract_duration'); 
-  var printerSerialNumberInput = document.getElementById('printer_serial_number');
+document.getElementById('printer_serial_number').addEventListener('input', function(e) {
+  var inputValue = e.target.value.toUpperCase();
+  var model = 'Unknown model';
 
-  priceBlackInput.disabled = true;
-  priceColorInput.disabled = true;
-  leaseRentInput.disabled = true;
-  warrantyDurationInput.disabled = true;
-  contractDurationInput.disabled = true; 
-
-  warrantyCheckbox.addEventListener('change', function() {
-    if (this.checked) {
-      serviceContractCheckbox.disabled = true;
-      warrantyDurationInput.disabled = false; 
-    } else {
-      serviceContractCheckbox.disabled = false;
-      warrantyDurationInput.disabled = true;
+  for (var prefix in printerModels) {
+    if (inputValue.startsWith(prefix)) {
+      model = printerModels[prefix];
+      break;
     }
-  });
+  }
 
-  printerSerialNumberInput.addEventListener('input', function() {
-    this.value = this.value.toUpperCase();
-  });
+  document.getElementById('model').value = model;
+});
 
-  serviceContractCheckbox.addEventListener('change', function() {
-    if (this.checked) {
-      warrantyCheckbox.disabled = true;
-      warrantyDurationInput.disabled = true;
-      priceBlackInput.disabled = false;
-      priceColorInput.disabled = false;
-      leaseRentInput.disabled = false;  
-      contractDurationInput.disabled = false;  
-    } else {
-      warrantyCheckbox.disabled = false;
-      warrantyDurationInput.disabled = false;
-      priceBlackInput.disabled = true;
-      priceColorInput.disabled = true;
-      leaseRentInput.disabled = true;  
-      contractDurationInput.disabled = true; 
-    }
-  });
-  
-  var assignedCheckbox = document.getElementById('assigned');
-  var clientInput = document.getElementById('company');
+var warrantyCheckbox = document.getElementById('warranty');
+var serviceContractCheckbox = document.getElementById('service_contract');
+var warrantyDurationInput = document.getElementById('warranty_duration');
+var leaseRentInput = document.getElementById('lease_rent');
+var priceBlackInput = document.getElementById('price_black');
+var priceColorInput = document.getElementById('price_color');
+var contractDurationInput = document.getElementById('contract_duration'); 
+var printerSerialNumberInput = document.getElementById('printer_serial_number');
 
-  assignedCheckbox.addEventListener('change', function() {
-    if (this.checked) {
-      clientInput.disabled = false;
-    } else {
-      clientInput.disabled = true;
-    }
-  });
+priceBlackInput.disabled = true;
+priceColorInput.disabled = true;
+leaseRentInput.disabled = true;
+warrantyDurationInput.disabled = true;
+contractDurationInput.disabled = true; 
+
+warrantyCheckbox.addEventListener('change', function() {
+  if (this.checked) {
+    serviceContractCheckbox.disabled = true;
+    warrantyDurationInput.disabled = false; 
+  } else {
+    serviceContractCheckbox.disabled = false;
+    warrantyDurationInput.disabled = true;
+  }
+});
+
+printerSerialNumberInput.addEventListener('input', function() {
+  this.value = this.value.toUpperCase();
+});
+
+serviceContractCheckbox.addEventListener('change', function() {
+  if (this.checked) {
+    warrantyCheckbox.disabled = true;
+    warrantyDurationInput.disabled = true;
+    priceBlackInput.disabled = false;
+    priceColorInput.disabled = false;
+    leaseRentInput.disabled = false;  
+    contractDurationInput.disabled = false;  
+  } else {
+    warrantyCheckbox.disabled = false;
+    warrantyDurationInput.disabled = false;
+    priceBlackInput.disabled = true;
+    priceColorInput.disabled = true;
+    leaseRentInput.disabled = true;  
+    contractDurationInput.disabled = true; 
+  }
+});
+
+var assignedCheckbox = document.getElementById('assigned');
+var clientInput = document.getElementById('company');
+
+assignedCheckbox.addEventListener('change', function() {
+  if (this.checked) {
+    clientInput.disabled = false;
+  } else {
+    clientInput.disabled = true;
+  }
+});
 </script>
 
 {% endblock %}
