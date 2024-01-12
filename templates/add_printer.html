@@ -123,6 +123,7 @@
   var priceBlackInput = document.getElementById('price_black');
   var priceColorInput = document.getElementById('price_color');
   var contractDurationInput = document.getElementById('contract_duration'); 
+  var printerSerialNumberInput = document.getElementById('printer_serial_number');
 
   priceBlackInput.disabled = true;
   priceColorInput.disabled = true;
@@ -138,6 +139,10 @@
       serviceContractCheckbox.disabled = false;
       warrantyDurationInput.disabled = true;
     }
+  });
+
+  printerSerialNumberInput.addEventListener('input', function() {
+    this.value = this.value.toUpperCase();
   });
 
   serviceContractCheckbox.addEventListener('change', function() {

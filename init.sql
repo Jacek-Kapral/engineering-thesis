@@ -77,3 +77,10 @@ CREATE TABLE IF NOT EXISTS service_requests (
     FOREIGN KEY (printer_id) REFERENCES printers(id),
     FOREIGN KEY (assigned_to) REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS knowledge_base (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    printer_model VARCHAR(255),
+    error_code VARCHAR(255),
+    probable_cause VARCHAR(255)
+);

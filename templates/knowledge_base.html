@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="center-container">
+  <h2>Knowledge Base</h2>
+</div>
+
+<div class="center-container">
+  <form method="GET" action="{{ url_for('knowledge_base') }}">
+    <div class="form-item">
+      <label for="printer_model">Printer Model:</label>
+      <select name="printer_model" id="printer_model">
+        {% for model in printer_models %}
+        <option value="{{ model }}">{{ model }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-item">
+      <label for="error_code">Error Code:</label>
+      <input type="text" id="error_code" name="error_code" placeholder="Enter error code" required>
+    </div>
+    <div class="button-group">
+      <button type="submit">Search</button>
+    </div>
+  </form>
+</div>
+
+{% if request.args.get('error_code') %}
+<div class="center-container" style="margin-top: 20px;">
+  <div style="border: 1px solid black; padding: 10px; background-color: #f8f9fa;">
+    <p>Probable cause:</p>
+    {% if probable_cause %}
+    {{ probable_cause }}
+    {% else %}
+    Placeholder solution to an example problem
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

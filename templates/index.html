@@ -2,8 +2,14 @@
 
 {% block content %}
 
-<div class="button-container">
-    <a href="{{ url_for('my_requests') }}" class="tlbtn">Requests assigned to me</a>
+<div style="display: flex;">
+    <div class="button-container">
+        <a href="{{ url_for('my_requests') }}" class="tlbtn">Requests assigned to me</a>
+    </div>
+
+    <div class="button-container">
+        <a href="{{ url_for('knowledge_base') }}" class="tlbtn">Knowledge Base</a>
+    </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>

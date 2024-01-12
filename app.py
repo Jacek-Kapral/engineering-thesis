@@ -1027,6 +1027,12 @@ def generate_pdf(request_id):
         response.headers['Content-Disposition'] = 'inline; filename=output.pdf'
 
         return response
+        
+@app.route('/knowledge_base')
+def knowledge_base():
+    with open('printer_models.json') as f:
+        printer_models = json.load(f)
+    return render_template('knowledge_base.html', printer_models=printer_models)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
