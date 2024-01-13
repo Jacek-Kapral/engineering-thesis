@@ -272,11 +272,13 @@ def login():
 @app.route('/logout')
 @login_required
 def logout():
-    logging.warning("Logging out user") # For debugging purposes
     logout_user()
-    flash('Logged out.')
     session.clear() 
-    return redirect(url_for('login', _external=True))
+    return redirect(url_for('logout_message', _external=True))
+
+@app.route('/logout_message')
+def logout_message():
+    return render_template('logout_message.html')
 
 @app.route('/add_printer', methods=['GET', 'POST'])
 @admin_required
