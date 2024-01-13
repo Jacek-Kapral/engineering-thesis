@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS users (
     login VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     admin BOOLEAN NOT NULL,
+    first_login_change_pass BOOLEAN DEFAULT TRUE,
     email VARCHAR(255)
 );
 

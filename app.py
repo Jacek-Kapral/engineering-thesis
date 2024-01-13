@@ -43,7 +43,7 @@ app.jinja_env.auto_reload = True
 
 
 class User(UserMixin):
-    def __init__(self, id, username, password_hash, admin, email):
+    def __init__(self, id, username, password_hash, admin, email, first_login_change_pass):
         if not isinstance(id, int):
             raise ValueError('id must be an integer')
         self.id = id
@@ -51,6 +51,7 @@ class User(UserMixin):
         self.password_hash = password_hash
         self.admin = admin
         self.email = email
+        self.first_login_change_pass = first_login_change_pass
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
@@ -84,17 +85,18 @@ def get_user_by_id(user_id):
         sql = "SELECT * FROM users WHERE id = %s"
         cursor.execute(sql, (user_id,))
         user = cursor.fetchone()
-    return user
+    return User(user['id'], user['login'], user['password'], user['admin'], user['email'], user['first_login_change_pass'])
 
-def update_user_in_db(user_id, login, password, admin, email):
+
+def update_user_in_db(user_id, login, password, admin, email, first_login_change_pass):
     connection = get_db_connection()
     with connection.cursor() as cursor:
         sql = """
         UPDATE users
-        SET login = %s, password = %s, admin = %s, email = %s
+        SET login = %s, password = %s, admin = %s, email = %s, first_login_change_pass = %s
         WHERE id = %s
         """
-        cursor.execute(sql, (login, password, admin, email, user_id))
+        cursor.execute(sql, (login, password, admin, email, first_login_change_pass, user_id))
     connection.commit()
 
 @app.route('/', methods=['GET'])
@@ -119,7 +121,7 @@ def load_user(user_id):
         cursor.execute(sql, (user_id,))
         user_data = cursor.fetchone()
     if user_data:
-        return User(user_data['id'], user_data['login'], user_data['password'], user_data['admin'], user_data['email'])
+        return User(user_data['id'], user_data['login'], user_data['password'], user_data['admin'], user_data['email'], user_data['first_login_change_pass'])
     else:
         return None
 
@@ -253,8 +255,13 @@ def login():
         if user_data and check_password_hash(user_data['password'], password):
             if not isinstance(user_data['id'], int):
                 raise ValueError('user id must be an integer')
-            user = User(user_data['id'], user_data['login'], user_data['password'], user_data['admin'], user_data['email'])
+            user = User(user_data['id'], user_data['login'], user_data['password'], user_data['admin'], user_data['email'], user_data['first_login_change_pass'])
             login_user(user)
+
+            # Check if user needs to change password and is not an admin
+            if user.first_login_change_pass and not user.admin:
+                flash('Account recently created, using temporarily assigned password. Change Your password in profile')
+
             return redirect(url_for('index'))
         else:
             flash('Invalid username or password', 'danger')
@@ -668,6 +675,46 @@ def edit_user(user_id):
     else:
         user = get_user_by_id(user_id)
         return render_template('edit_user.html', user=user)
+
+@app.route('/user_profile', methods=['GET', 'POST'])
+@login_required
+def user_profile():
+    user_id = current_user.id
+    connection = get_db_connection()
+    if request.method == 'POST':
+        login = request.form['login']
+        old_password = request.form['old_password']
+        new_password = request.form['new_password']
+        repeat_new_password = request.form['repeat_new_password']
+        email = request.form['email']
+
+        user = get_user_by_id(user_id)
+
+        if not user:
+            flash('User not found')
+            return redirect(url_for('index'))
+
+        if not check_password_hash(user.password, old_password):
+            flash('Old password is incorrect')
+            return redirect(url_for('user_profile'))
+
+        if new_password != repeat_new_password:
+            flash('New passwords do not match')
+            return redirect(url_for('user_profile'))
+
+        user.password = generate_password_hash(new_password)
+        user.first_login_change_pass = False
+        update_user_in_db(user_id, login, user.password, user.admin, email)
+        flash('User details updated.', 'success')
+        return redirect(url_for('user_profile'))
+    else:
+        user = get_user_by_id(user_id)
+
+        if not user:
+            flash('User not found')
+            return redirect(url_for('index'))
+
+        return render_template('user_profile.html', user=user)
 
 @app.route('/get_printers/', methods=['GET'])
 @login_required

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>User profile: {{ user.login }}</h2>
+
+<form id="userProfileForm" method="POST" action="{{ url_for('user_profile') }}">
+    <label for="login">Login:</label>
+    <input type="text" id="login" name="login" value="{{ user.login }}" readonly style="background-color: #e9ecef;">
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" value="{{ user.email }}" readonly style="background-color: #e9ecef;">
+
+    <label for="old_password">Old Password:</label>
+    <input type="password" id="old_password" name="old_password">
+
+    <label for="new_password">New Password:</label>
+    <input type="password" id="new_password" name="new_password">
+
+    <label for="repeat_new_password">Repeat New Password:</label>
+    <input type="password" id="repeat_new_password" name="repeat_new_password">
+
+    <div class="button-group">
+        <input type="submit" value="Submit">
+        <button type="button" onclick="window.location.href='/index'">Back</button>
+    </div>
+</form>
+
+<script>
+document.getElementById('userProfileForm').addEventListener('submit', function(event) {
+    var newPassword = document.getElementById('new_password').value;
+    var repeatNewPassword = document.getElementById('repeat_new_password').value;
+
+    if (newPassword !== repeatNewPassword) {
+        alert('New passwords do not match');
+        event.preventDefault();
+        return false;
+    }
+
+    if (!confirm('Are you sure you want to save changes?')) {
+        event.preventDefault();
+        return false;
+    }
+});
+</script>
+{% endblock %}
