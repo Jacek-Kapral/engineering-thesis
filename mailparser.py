@@ -1,14 +1,13 @@
+from email.header import decode_header
+from email.utils import parsedate_to_datetime
+from dotenv import load_dotenv
 import os
 import poplib
 import email
 import datetime
 import json
 import time
-import threading
-from email.header import decode_header
-from dotenv import load_dotenv
 import re
-from email.utils import parsedate_to_datetime
 import logging
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -36,7 +35,7 @@ def run_script():
         if num_messages == 0:
             logging.info("Mailbox empty, skipping the process.")
             mail.quit()
-            time.sleep(900)
+            time.sleep(900) # set preferred time interval here
             continue
 
         saved_message_ids = set()
@@ -76,8 +75,7 @@ def run_script():
                     saved_message_ids.add(message_id)
 
         mail.quit()
-        time.sleep(900)
+        time.sleep(900) # set preferred time interval here
 
 if __name__ == '__main__':
-    thread = threading.Thread(target=run_script)
-    thread.start()
+    run_script()

@@ -15,7 +15,6 @@ from dotenv import load_dotenv
 import pymysql
 import pygal
 import json
-import logging
 
 with open('printer_models.json') as f:
     printer_models_from_file = json.load(f)
@@ -1027,7 +1026,7 @@ def generate_pdf(request_id):
         response.headers['Content-Disposition'] = 'inline; filename=output.pdf'
 
         return response
-        
+
 @app.route('/knowledge_base')
 def knowledge_base():
     with open('printer_models.json') as f:
