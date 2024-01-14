@@ -252,12 +252,6 @@ def login():
                 raise ValueError('user id must be an integer')
             user = User(user_data['id'], user_data['login'], password, user_data['admin'], user_data['email'], user_data['first_login_change_pass'])
             login_user(user)
-
-            app.logger.info('User logged in: %s', user)
-
-            if user.first_login_change_pass and not user.admin:
-                flash('Account recently created, using temporarily assigned password. Change Your password in profile')
-
             return redirect(url_for('index'))
         else:
             flash('Invalid username or password', 'danger')
