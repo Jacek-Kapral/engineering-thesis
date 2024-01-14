@@ -39,7 +39,7 @@
       <table>
         {% for request in service_requests %}
         <tr>
-          <td>Date: {{ request.request_date }}, Problem: {{ request.service_request }}</td>
+          <td>Date: {{ request.request_date }}, Problem: {{ request.service_request }}, Solved how? {{ request.done_description }}</td>
         </tr>
         {% endfor %}
       </table>

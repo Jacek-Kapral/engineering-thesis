@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS service_requests (
     assigned_to INT,
     request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     active BOOLEAN DEFAULT TRUE,
+    done_description VARCHAR(255) DEFAULT 'Not done yet.',
     FOREIGN KEY (tax_id) REFERENCES clients(tax_id),
     FOREIGN KEY (printer_id) REFERENCES printers(id),
     FOREIGN KEY (assigned_to) REFERENCES users(id)

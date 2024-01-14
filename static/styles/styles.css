@@ -1,214 +1,233 @@
 .required {
-    color: red;
+  color: red;
 }
 
 .login-button {
-    background-color: #E0EFFF;
-    color: #656263;
-    border: none;
+  background-color: #E0EFFF;
+  color: #656263;
+  border: none;
 }
 .menu-logo {
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
 }
 
 .navbar {
-    height: 72px;
-    padding: 0;
-    background-color: #d9d9d9;
+  height: 72px;
+  padding: 0;
+  background-color: #d9d9d9;
 }
 
 .navbar-nav .nav-link {
-    color: #545454;
+  color: #545454;
 }
 
 .navbar-brand {
-    padding: 0;
+  padding: 0;
 }
 
 .navbar-logo {
-    height: 72px;
-    width: auto;
+  height: 72px;
+  width: auto;
 }
 
 .container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
-  
-form {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    width: 40%; 
-    margin: auto;
-  }
-  .form-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-  }
-  .form-item {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-  }
-  .button-group {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-  }
-  .button-group button, .button-group input[type="submit"] {
-    background-color: #E0EFFF;
-    color: #656263;
-    border: 1px solid #80bdff;
-    border-radius: 5px;
-    padding: 10px;
-  }
-
-  .button-group button:hover, .button-group input[type="submit"]:hover {
-    text-decoration: none;
-    color: #545454;
-    box-shadow: 0 0 10px rgba(0,0,0,0.25);
-  }
-
-.vh-100 {
-  height: 50vh;
-}
-
-.tlbtn {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100px;
-  height: 100px;
-  padding: 10px;
-  background-color: #E0EFFF;
-  color: #656263;
-  text-decoration: none;
-  border: 1px solid #80bdff;
-  border-radius: 5px;
-  white-space: normal;
-  text-align: center;
-  line-height: 1.2;
-  margin: 20px 20px 20px 20px;
+  height: 100vh;
 }
 
-.tlbtn:hover {
-  text-decoration: none;
-  color: #545454;
-  box-shadow: 0 0 10px rgba(0,0,0,0.25); 
-}
-
-.styled-table {
-  border-collapse: collapse;
-  margin: 25px auto;
-  font-size: 0.9em;
-  font-family: sans-serif;
-  min-width: 600px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-}
-.styled-table thead tr {
-  background-color: #009879;
-  color: #ffffff;
-  text-align: left;
-}
-.styled-table th,
-.styled-table td {
-  padding: 12px 15px;
-  text-align: center;
-}
-.styled-table tbody tr {
-  border-bottom: 1px solid #dddddd;
-}
-
-.styled-table tbody tr:nth-of-type(even) {
-  background-color: #f3f3f3;
-}
-
-.styled-table tbody tr:last-of-type {
-  border-bottom: 2px solid #009879;
-}
-
-.admin-icon {
-  margin-left: 5px;
-}
-
-.center-container {
-  display: flex;
-  justify-content: center;
-  width: 50%; 
-  margin: 0 auto;
-}
-
-.button-container {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-}
-
-a {
-  text-decoration: none;
-  color: #545454;
-}
-
-a:hover {
-  color: #656263;
-}
-
-.table-container {
+form {
   display: flex;
   flex-direction: column;
   gap: 20px;
   width: 40%; 
   margin: auto;
 }
-
-.margin-left {
-  margin-left: 3%;
-}
-
-.pagination {
-  margin-top: 10px;
-  width: fit-content;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.history-container {
+.form-row {
   display: flex;
   justify-content: space-between;
+  gap: 10px;
 }
-
-.history-section {
-  width: 50%;
+.form-item {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
-
-.scrollable-table {
-  max-height: 200px;
-  overflow-y: auto;
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
 }
-
-.styled-button {
+.button-group button, .button-group input[type="submit"] {
   background-color: #E0EFFF;
   color: #656263;
   border: 1px solid #80bdff;
   border-radius: 5px;
-  padding: 10px 20px 10px 20px;
+  padding: 10px;
 }
 
-.styled-button:hover {
+.button-group button:hover, .button-group input[type="submit"]:hover {
   text-decoration: none;
   color: #545454;
   box-shadow: 0 0 10px rgba(0,0,0,0.25);
 }
 
+.vh-100 {
+height: 50vh;
+}
+
+.tlbtn {
+display: flex;
+justify-content: center;
+align-items: center;
+width: 100px;
+height: 100px;
+padding: 10px;
+background-color: #E0EFFF;
+color: #656263;
+text-decoration: none;
+border: 1px solid #80bdff;
+border-radius: 5px;
+white-space: normal;
+text-align: center;
+line-height: 1.2;
+margin: 20px 20px 20px 20px;
+}
+
+.tlbtn:hover {
+text-decoration: none;
+color: #545454;
+box-shadow: 0 0 10px rgba(0,0,0,0.25); 
+}
+
+.styled-table {
+border-collapse: collapse;
+margin: 25px auto;
+font-size: 0.9em;
+font-family: sans-serif;
+min-width: 600px;
+box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+.styled-table thead tr {
+background-color: #009879;
+color: #ffffff;
+text-align: left;
+}
+.styled-table th,
+.styled-table td {
+padding: 12px 15px;
+text-align: center;
+}
+.styled-table tbody tr {
+border-bottom: 1px solid #dddddd;
+}
+
+.styled-table tbody tr:nth-of-type(even) {
+background-color: #f3f3f3;
+}
+
+.styled-table tbody tr:last-of-type {
+border-bottom: 2px solid #009879;
+}
+
+.admin-icon {
+margin-left: 5px;
+}
+
+.center-container {
+display: flex;
+justify-content: center;
+width: 50%; 
+margin: 0 auto;
+}
+
+.button-container {
+display: flex;
+justify-content: center;
+gap: 20px;
+}
+
+a {
+text-decoration: none;
+color: #545454;
+}
+
+a:hover {
+color: #656263;
+}
+
+.table-container {
+display: flex;
+flex-direction: column;
+gap: 20px;
+width: 40%; 
+margin: auto;
+}
+
+.margin-left {
+margin-left: 3%;
+}
+
+.pagination {
+margin-top: 10px;
+width: fit-content;
+margin-left: auto;
+margin-right: auto;
+}
+
+.history-container {
+display: flex;
+justify-content: space-between;
+}
+
+.history-section {
+width: 50%;
+}
+
+.scrollable-table {
+max-height: 200px;
+overflow-y: auto;
+}
+
+.styled-button {
+background-color: #E0EFFF;
+color: #656263;
+border: 1px solid #80bdff;
+border-radius: 5px;
+padding: 10px 20px 10px 20px;
+}
+
+.styled-button:hover {
+text-decoration: none;
+color: #545454;
+box-shadow: 0 0 10px rgba(0,0,0,0.25);
+}
+
 .profile-icon {
-  margin-right: 30px;
+margin-right: 30px;
 }
 
 .navbar-nav.align-items-center {
-  align-items: center;
+align-items: center;
+}
+
+.table-form {
+width: auto; 
+margin: 0;
+}
+
+.button-style {
+background-color: #E0EFFF;
+color: #656263;
+border: 1px solid #80bdff;
+border-radius: 5px;
+padding: 10px;
+}
+
+.button-style:hover {
+text-decoration: none;
+color: #545454;
+box-shadow: 0 0 10px rgba(0,0,0,0.25);
 }

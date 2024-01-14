@@ -12,33 +12,28 @@
     <tr>
       <th>Service Request</th>
       <th>Company</th>
-      <th>Printer Serial Number</th>
-      <th>Printer Model</th>
+      <th>Serial Number</th>
       <th>Request Date</th>
-      <th>Done?</th>
-      <th style="width: 20%;">PDF Report</th>
     </tr>
     {% for request in service_requests %}
-      <tr>
-        <td>{{ request.service_request }}</td>
-        <td>{{ request.company }}</td>
-        <td>{{ request.serial_number }}</td>
-        <td>{{ request.model }}</td>
-        <td>{{ request.request_date }}</td>
-        <td>
-          <form method="POST" action="{{ url_for('mark_done') }}" onsubmit="return confirm('Are you sure you want to mark this service request as done?');">
-            <input type="hidden" name="request_id" value="{{ request.id }}">
-            <input type="image" src="{{ url_for('static', filename='img/ok_ico.png') }}" alt="Done" style="display: block; margin: auto;">
-          </form>
-        </td>
-        <td>
-          <div class="button-group">
-            <form method="POST" action="{{ url_for('generate_pdf', request_id=request.id) }}">
-              <button type="submit" style="width: 80px;">Generate</button>
-            </form>
-          </div>
-        </td>
-      </tr>
+    <tr>
+      <td>{{ request.service_request }}</td>
+      <td>{{ request.company }}</td>
+      <td>{{ request.serial_number }}</td>
+      <td>{{ request.request_date }}</td>
+    </tr>
+    <tr>
+      <td colspan="4">
+        <form class="table-form" method="POST" action="{{ url_for('mark_done') }}" onsubmit="return confirm('Are you sure you want to mark this service request as done?');" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+          <input type="hidden" name="request_id" value="{{ request.id }}">
+          <input type="text" name="done_description" placeholder="Describe work done" maxlength="255" style="width: 80%;">
+          <input type="image" src="{{ url_for('static', filename='img/ok_ico.png') }}" alt="Done">
+        </form>
+        <form method="POST" action="{{ url_for('generate_pdf', request_id=request.id) }}" style="display: inline;">
+          <button type="submit" class="button-style">Generate PDF Report</button>
+        </form>
+      </td>
+    </tr>
     {% endfor %}
   </table>
 </div>

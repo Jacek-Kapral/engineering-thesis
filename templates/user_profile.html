@@ -2,7 +2,11 @@
 
 {% block content %}
 
-<h2>User profile: {{ user.login }}</h2>
+<h2></h2>
+
+<div class="center-container">
+    <h2>User profile: {{ user.login }}</h2>
+</div>
 
 <form id="userProfileForm" method="POST" action="{{ url_for('user_profile') }}">
     <label for="login">Login:</label>

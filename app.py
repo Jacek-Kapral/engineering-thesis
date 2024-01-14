@@ -84,8 +84,8 @@ def get_user_by_id(user_id):
     with connection.cursor() as cursor:
         sql = "SELECT * FROM users WHERE id = %s"
         cursor.execute(sql, (user_id,))
-        user = cursor.fetchone()
-    return User(user['id'], user['login'], user['password'], user['admin'], user['email'], user['first_login_change_pass'])
+        user_data = cursor.fetchone()
+    return user_data
 
 
 def update_user_in_db(user_id, login, password, admin, email, first_login_change_pass):
@@ -206,16 +206,14 @@ def confirm_reset(token):
         return 'Password reset!'
     return render_template('confirmreset.html', token=token)
 
-@app.route('/index', methods=['GET'])
-def index():
-    connection = get_db_connection()
-    with connection.cursor() as cursor:
-        sql = "SELECT * FROM service_requests ORDER BY request_date DESC LIMIT 10"
-        cursor.execute(sql)
-        recent_requests = cursor.fetchall()
-    for request in recent_requests:
-        request['request_date'] = request['request_date'].date()
-    return render_template('index.html', recent_requests=recent_requests)
+
+
+@app.before_request
+def require_login():
+    allowed_routes = ['register_admin', 'login', 'static', 'home', 'logout', 'reset_password', 'confirm_reset']
+    if not current_user.is_authenticated and request.endpoint not in allowed_routes:
+        print("Redirecting to login")
+        return redirect(url_for('login'))
 
 @app.before_request
 def load_logged_in_user():
@@ -230,18 +228,13 @@ def load_logged_in_user():
             sql = "SELECT * FROM users WHERE id = %s"
             cursor.execute(sql, (user_id,))
             g.user = cursor.fetchone()
-
-@app.before_request
-def require_login():
-    allowed_routes = ['register_admin', 'login', 'static', 'home', 'logout', 'reset_password', 'confirm_reset']
-    if not current_user.is_authenticated and request.endpoint not in allowed_routes:
-        print("Redirecting to login")
-        return redirect(url_for('login'))
+            app.logger.info('user_id: %s', user_id)
+            app.logger.info('g.user: %s', g.user)
+            if g.user:
+                app.logger.info('first_login_change_pass: %s', g.user['first_login_change_pass'])
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if '_flashes' in session:
-        session['_flashes'] = [msg for msg in get_flashed_messages() if msg != 'Logged out.']
     if request.method == 'POST':
         username = request.form['login']
         password = request.form['password']
@@ -252,22 +245,32 @@ def login():
             cursor.execute(sql, (username,))
             user_data = cursor.fetchone()
 
+        app.logger.info('Fetched user data: %s', user_data)
+
         if user_data and check_password_hash(user_data['password'], password):
             if not isinstance(user_data['id'], int):
                 raise ValueError('user id must be an integer')
-            user = User(user_data['id'], user_data['login'], user_data['password'], user_data['admin'], user_data['email'], user_data['first_login_change_pass'])
+            user = User(user_data['id'], user_data['login'], password, user_data['admin'], user_data['email'], user_data['first_login_change_pass'])
             login_user(user)
 
-            # Check if user needs to change password and is not an admin
+            app.logger.info('User logged in: %s', user)
+
             if user.first_login_change_pass and not user.admin:
                 flash('Account recently created, using temporarily assigned password. Change Your password in profile')
 
             return redirect(url_for('index'))
         else:
             flash('Invalid username or password', 'danger')
-            return render_template('login.html', show_menu=False)
+            return redirect(url_for('login'))
     else:
         return render_template('login.html', show_menu=False)
+
+@app.route('/index', methods=['GET'])
+@login_required
+def index():
+    app.logger.info('User is authenticated: %s', current_user.is_authenticated)
+    app.logger.info('User needs to change password: %s', current_user.first_login_change_pass)
+    return render_template('index.html')
 
 @app.route('/logout')
 @login_required
@@ -690,33 +693,34 @@ def user_profile():
         repeat_new_password = request.form['repeat_new_password']
         email = request.form['email']
 
-        user = get_user_by_id(user_id)
+        user_data = get_user_by_id(user_id)
 
-        if not user:
-            flash('User not found')
+        if not user_data:
+            flash('User not found', 'danger')
             return redirect(url_for('index'))
 
-        if not check_password_hash(user.password, old_password):
-            flash('Old password is incorrect')
+        if not check_password_hash(user_data['password'], old_password):
+            flash('Old password is incorrect', 'danger')
             return redirect(url_for('user_profile'))
 
         if new_password != repeat_new_password:
-            flash('New passwords do not match')
+            flash('New passwords do not match', 'danger')
             return redirect(url_for('user_profile'))
 
-        user.password = generate_password_hash(new_password)
-        user.first_login_change_pass = False
-        update_user_in_db(user_id, login, user.password, user.admin, email)
+        hashed_password = generate_password_hash(new_password)
+        user_data['first_login_change_pass'] = False
+        update_user_in_db(user_id, login, hashed_password, user_data['admin'], email, user_data['first_login_change_pass'])
+        flash('Password successfully changed.', 'success')
         flash('User details updated.', 'success')
-        return redirect(url_for('user_profile'))
+        return redirect(url_for('index'))
     else:
-        user = get_user_by_id(user_id)
+        user_data = get_user_by_id(user_id)
 
-        if not user:
+        if not user_data:
             flash('User not found')
             return redirect(url_for('index'))
 
-        return render_template('user_profile.html', user=user)
+        return render_template('user_profile.html', user=user_data)
 
 @app.route('/get_printers/', methods=['GET'])
 @login_required
@@ -786,13 +790,11 @@ def submit_service_request():
     printer_id = request.form.get('printer_id')
     tax_id = request.form.get('tax_id')
 
-    # Check if service_request and tax_id are strings
     if not isinstance(service_request, str) or not isinstance(tax_id, str):
         flash('Invalid service request or company tax ID', 'error')
         return redirect(url_for('service_requests'))
 
     try:
-        # Check if printer_id is an integer
         printer_id = int(printer_id)
     except ValueError:
         flash('Invalid printer ID', 'error')
@@ -807,7 +809,13 @@ def submit_service_request():
         cursor.execute(sql, (service_request, printer_id, tax_id))
         connection.commit()
 
-    return redirect(url_for('service_requests'))
+    flash('Request added', 'success')
+
+    user = get_user_by_id(current_user.get_id())
+    if user['admin'] == 1:
+        return redirect(url_for('service_requests'))
+    else:
+        return redirect(url_for('index'))
 
 @app.route('/view_printers/<string:tax_id>', methods=['GET'])
 @login_required
@@ -924,10 +932,11 @@ def my_requests():
 @login_required
 def mark_done():
     request_id = request.form.get('request_id')
+    done_description = request.form.get('done_description')
     connection = get_db_connection()
     with connection.cursor() as cursor:
-        sql = "UPDATE service_requests SET active = FALSE WHERE id = %s"
-        cursor.execute(sql, (request_id,))
+        sql = "UPDATE service_requests SET active = FALSE, done_description = %s WHERE id = %s"
+        cursor.execute(sql, (done_description, request_id))
         connection.commit()
 
     user = get_user_by_id(current_user.get_id())
