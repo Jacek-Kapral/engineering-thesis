@@ -75,9 +75,9 @@ CREATE TABLE IF NOT EXISTS service_requests (
     request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     active BOOLEAN DEFAULT TRUE,
     done_description VARCHAR(255) DEFAULT 'Not done yet.',
-    FOREIGN KEY (tax_id) REFERENCES clients(tax_id),
-    FOREIGN KEY (printer_id) REFERENCES printers(id),
-    FOREIGN KEY (assigned_to) REFERENCES users(id)
+    FOREIGN KEY (tax_id) REFERENCES clients(tax_id) ON DELETE SET NULL,
+    FOREIGN KEY (printer_id) REFERENCES printers(id) ON DELETE CASCADE,
+    FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS knowledge_base (

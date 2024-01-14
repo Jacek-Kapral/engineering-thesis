@@ -906,6 +906,8 @@ def assign_user():
         cursor.execute(sql, (user_id, request_id))
         connection.commit()
 
+    flash('User successfully assigned to service request', 'success')
+
     return redirect(url_for('service_requests'))
 
 @app.route('/my_requests', methods=['GET'])
@@ -917,7 +919,7 @@ def my_requests():
     connection = get_db_connection()
     with connection.cursor() as cursor:
         sql = """
-        SELECT service_requests.*, clients.company, printers.serial_number, printers.model 
+        SELECT service_requests.*, clients.company, clients.address, clients.city, clients.phone, printers.serial_number, printers.model 
         FROM service_requests 
         JOIN clients ON service_requests.tax_id = clients.tax_id 
         JOIN printers ON service_requests.printer_id = printers.id

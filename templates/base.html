@@ -37,13 +37,13 @@
                         <a class="nav-link" href="{{ url_for('users') }}">Show all users</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('register_client') }}">Add a new client</a>
+                        <a class="nav-link" href="{{ url_for('register_client') }}">Add new client</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('add_printer') }}">Add a new printer</a>
+                        <a class="nav-link" href="{{ url_for('add_printer') }}">Add new printer</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('register') }}">Add a new user</a>
+                        <a class="nav-link" href="{{ url_for('register') }}">Add new user</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('service_requests') }}">Service Requests</a>
@@ -53,7 +53,7 @@
         </ul>
         {% if current_user.is_authenticated %}
         <div class="ml-auto">
-            <ul class="navbar-nav align-items-center"> <!-- Add the align-items-center class here -->
+            <ul class="navbar-nav align-items-center">
                 <li class="nav-item">
                     <a class="nav-link profile-icon" href="{{ url_for('user_profile') }}">
                         <img src="{{ url_for('static', filename='img/profile_ico.png') }}" alt="Profile Icon">
