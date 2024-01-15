@@ -268,12 +268,9 @@ def index():
 @login_required
 def logout():
     logout_user()
-    session.clear() 
-    return redirect(url_for('logout_message', _external=True))
-
-@app.route('/logout_message')
-def logout_message():
-    return render_template('logout_message.html')
+    session.clear()
+    flash("Logged out successfully.", "success")
+    return redirect(url_for('login', _external=True))
 
 @app.route('/add_printer', methods=['GET', 'POST'])
 @admin_required

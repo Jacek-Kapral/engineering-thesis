@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Printer Management Cloud Application</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/styles.css') }}">
-    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-</head>
+    <head>
+        <title>Printer Management Cloud Application</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles/styles.css') }}">
+        <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    </head>
 <body>
 {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}

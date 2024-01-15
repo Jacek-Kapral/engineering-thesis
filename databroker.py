@@ -8,21 +8,17 @@ import logging
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-# Load environment variables from .env file
 load_dotenv()
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class FileHandler(FileSystemEventHandler):
     def on_modified(self, event):
-        # Check if the modified file is a .txt file
         if event.src_path.endswith('.txt'):
             logging.info(f"File {event.src_path} has been modified.")
-            # Call your processing function here
             process_file(event.src_path)
 
 def process_file(file_path):
-    # Connect to the MySQL database
     db = pymysql.connect(
         host=os.getenv('MYSQL_DB_HOST'),
         user=os.getenv('MYSQL_DB_USER'),
@@ -35,62 +31,51 @@ def process_file(file_path):
     with open(file_path, 'r') as file:
         content = file.read()
 
-        # Extract date from filename
-        date = datetime.datetime.strptime(file_path[-14:-4], '%Y-%m-%d').date()
+        match = re.search(r'\d{4}-\d{2}-\d{2}', file_path)
+        if match:
+            date = datetime.datetime.strptime(match.group(), '%Y-%m-%d').date()
 
-        # Check if there's a "[Serial Number]," string
-        match = re.search(r'\[Serial Number\],(.+)', content)
+        match = re.search(r'\[Serial Number\],(.{0,25})', content)
         if match:
             serial_number = match.group(1).strip()
 
-            # Check if the serial number is present in printers.serial_number
             cursor.execute("SELECT id, service_contract, tax_id FROM printers WHERE serial_number = %s", (serial_number,))
             printer = cursor.fetchone()
-            if printer and printer[1]:  # If the printer exists and has a service contract
-                # Check for the "[Total Black Counter]," and "[Total Color Counter]," strings
-                match_black = re.search(r'\[Total Black Counter\],(.+)', content)
-                match_color = re.search(r'\[Total Color Counter\],(.+)', content)
-                match_total = re.search(r'\[Total Counter\],(.+)', content)
+            if printer and printer['service_contract']: 
+                match_black = re.search(r'\[Total Black Counter\],(\d{0,25})', content)
+                match_color = re.search(r'\[Total Color Counter\],(\d{0,25})', content)
+                match_total = re.search(r'\[Total Counter\],(\d{0,25})', content)
                 if match_black or match_color or match_total:
-                    counter_black = match_black.group(1).strip() if match_black else match_total.group(1).strip() if match_total else None
-                    counter_color = match_color.group(1).strip() if match_color else None
-
-                    # Insert the counters into print_history
+                    if match_color:
+                        counter_color = match_color.group(1).strip()
+                        counter_black = match_black.group(1).strip() if match_black else None
+                    else:
+                        counter_color = "0"
+                        counter_black = match_total.group(1).strip() if match_total else None
                     cursor.execute("INSERT INTO print_history (printers_id, date, counter_black_history, counter_color_history) VALUES (%s, %s, %s, %s)",
-                                   (printer[0], date, counter_black, counter_color))
+                                (printer['id'], date, counter_black, counter_color))
                     db.commit()
 
-        # Check if there's a "Installed Place :" string
-        match = re.search(r'Installed Place :(.+)', content)
+        match = re.search(r'Installed Place :(.{0,25})', content)
         if match:
             serial_number = match.group(1).strip()
-
-            # Check if the serial number is present in printers.serial_number
             cursor.execute("SELECT id, tax_id FROM printers WHERE serial_number = %s", (serial_number,))
             printer = cursor.fetchone()
-            if printer:  # If the printer exists
-                # Check for the "Error :" string
+            if printer: 
                 match = re.search(r'Error :(.+)', content)
                 if match:
                     error = match.group(1).strip()
-
-                    # Check if a service request with the same printer_id, service_request, and date already exists
                     cursor.execute("SELECT id, times_happend FROM service_requests WHERE printer_id = %s AND service_request = %s AND DATE(request_date) = %s",
-                                (printer[0], error, date))
+                                (printer['id'], error, date))
                     service_request = cursor.fetchone()
 
-                    if service_request:  # If the service request exists
-                        # Increment the times_happend field
+                    if service_request:  
                         cursor.execute("UPDATE service_requests SET times_happend = times_happend + 1 WHERE id = %s",
                                     (service_request['id'],))
                     else:
-                        # Insert the error into service_requests
                         cursor.execute("INSERT INTO service_requests (printer_id, tax_id, service_request) VALUES (%s, %s, %s)",
-                                    (printer[0], printer[1], error))
-
+                                    (printer['id'], printer['tax_id'], error))
                     db.commit()
-
-    # Close the database connection
     db.close()
 
 if __name__ == "__main__":
