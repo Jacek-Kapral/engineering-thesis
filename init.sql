@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255)
 );
 
-CREATE TABLE my_company (
+CREATE TABLE IF NOT EXISTS my_company (
     id INT AUTO_INCREMENT PRIMARY KEY,
     company_name VARCHAR(255) NOT NULL,
     tax_id VARCHAR(255) NOT NULL UNIQUE,

@@ -156,7 +156,7 @@ def register_admin():
             cursor.execute(sql, (company_name, tax_id, address, postal_code, city, phone, company_email))
         connection.commit()
 
-        msg = Message('Admin account created', sender='noreply@example.com', recipients=[email])
+        msg = Message('Admin account created', sender='noreply@printerfleetmanager.com', recipients=[email])
         msg.body = f"Hello,\nYou've just registered Your admin account in Printer Fleet Manager App, \nusing given email address, with following data about Your company:\n{ tax_id }\n{ company_name }\n{ address }\n{ postal_code } { city }\n{ phone }\n{ company_email }\nHave a nice experience managing Your printer fleet!"
         mail.send(msg)
 
@@ -205,8 +205,6 @@ def confirm_reset(token):
         hashed_password = generate_password_hash(password)
         return 'Password reset!'
     return render_template('confirmreset.html', token=token)
-
-
 
 @app.before_request
 def require_login():
@@ -298,7 +296,8 @@ def add_printer():
         price_color = request.form.get('price_color', None)  
         start_date = request.form.get('start_date') or None
 
-        assigned = 'assigned' in request.form
+        assigned = 1 if 'assigned' in request.form else 0
+        service_contract = 1 if 'service_contract' in request.form else 0
         company = request.form.get('company', None)
 
         if assigned and company:
@@ -325,10 +324,10 @@ def add_printer():
 
         with connection.cursor() as cursor:
             sql = """
-            INSERT INTO printers(serial_number, black_counter, color_counter, model, price_black, price_color, contract_start_date, tax_id) 
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO printers(serial_number, black_counter, color_counter, model, price_black, price_color, contract_start_date, tax_id, assigned, service_contract) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
-            cursor.execute(sql, (printer_serial_number, counter_black, counter_color, printer_model, price_black, price_color, start_date, tax_id))
+            cursor.execute(sql, (printer_serial_number, counter_black, counter_color, printer_model, price_black, price_color, start_date, tax_id, assigned, service_contract))
             printer_id = cursor.lastrowid
             connection.commit()
 
@@ -619,7 +618,7 @@ def printer_info(printer_id):
         print_history = []
         for i in range(len(rows)):
             row = rows[i]
-            if i > 0 and printer['contract_id'] is not None and printer['price_black'] is not None and printer['price_color'] is not None:
+            if i > 0 and printer['service_contract'] == 1 and printer['price_black'] is not None and printer['price_color'] is not None:
                 prev_row = rows[i - 1]
                 black_diff = row['counter_black_history'] - prev_row['counter_black_history']
                 color_diff = row['counter_color_history'] - prev_row['counter_color_history']
@@ -945,15 +944,14 @@ def mark_done():
 @app.route('/delete_request/<int:id>', methods=['POST'])
 @admin_required
 def delete_request(id):
-    app.logger.info(f"id: {id}") # for debugging purposes
-    try: # for debugging purposes
+    try:
         connection = get_db_connection()
         with connection.cursor() as cursor:
             sql = "DELETE FROM service_requests WHERE id = %s"
             cursor.execute(sql, (id,))
             connection.commit()
         return redirect(url_for('service_requests'))
-    except Exception as e: # for debugging purposes
+    except Exception as e: 
         print(f"An error occurred when executing the SQL query: {e}")
         return redirect(url_for('service_requests'))
 

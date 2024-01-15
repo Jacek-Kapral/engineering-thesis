@@ -54,10 +54,12 @@
           {% for history in print_history %}
           <tr>
             <td>Date: {{ history.date }}, Black Counter: {{ history.counter_black_history }}, Color Counter: {{ history.counter_color_history }}</td>
-            {% if history.black_cost is defined and history.color_cost is defined %}
-            <td>Black Cost: {{ history.black_cost }}, Color Cost: {{ history.color_cost }}</td>
-            {% endif %}
           </tr>
+          {% if history.black_cost is defined and history.color_cost is defined %}
+          <tr>
+            <td style="padding-left: 30px;">Black Cost: {{ history.black_cost }}, Color Cost: {{ history.color_cost }}</td>
+          </tr>
+          {% endif %}
           {% endfor %}
         </table>
       </div>

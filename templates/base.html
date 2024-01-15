@@ -52,17 +52,11 @@
             {% endif %}
         </ul>
         {% if current_user.is_authenticated %}
-        <div class="ml-auto">
-            <ul class="navbar-nav align-items-center">
-                <li class="nav-item">
-                    <a class="nav-link profile-icon" href="{{ url_for('user_profile') }}">
-                        <img src="{{ url_for('static', filename='img/profile_ico.png') }}" alt="Profile Icon">
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
-                </li>
-            </ul>
+        <div class="ml-auto d-flex flex-column flex-lg-row">
+            <a class="nav-link profile-icon d-flex align-items-center" href="{{ url_for('user_profile') }}">
+                Profile <img src="{{ url_for('static', filename='img/profile_ico.png') }}" alt="Profile Icon"> 
+            </a>
+            <a class="nav-link mt-2 mt-lg-0 ml-lg-2 align-self-center" href="{{ url_for('logout') }}">Logout</a>
         </div>
         {% endif %}
     </div>

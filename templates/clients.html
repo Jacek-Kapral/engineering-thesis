@@ -17,7 +17,7 @@
   </form>
 </div>
 
-<form>
+<div class="center-container">
     <table id="clientsTable" class="styled-table">
             <tr>
                 <th scope="col">Tax ID</th>
@@ -44,17 +44,16 @@
             </tr>
             {% endfor %}
     </table>
-</form>
-
-
-<div class="pagination">
-  <a href="{{ url_for('clients', page=1) }}">First..</a>&nbsp;
-  {% if page > 1 %}
-  <a href="{{ url_for('clients', page=page-1) }}">..Previous..</a>&nbsp;
-  {% endif %}
-  <span>..Page {{ page }}..</span>&nbsp;
-  <a href="{{ url_for('clients', page=page+1) }}">..Next</a>
 </div>
+
+  <div class="pagination">
+    <a href="{{ url_for('clients', page=1) }}">First..</a>&nbsp;
+    {% if page > 1 %}
+    <a href="{{ url_for('clients', page=page-1) }}">..Previous..</a>&nbsp;
+    {% endif %}
+    <span>..Page {{ page }}..</span>&nbsp;
+    <a href="{{ url_for('clients', page=page+1) }}">..Next</a>
+  </div>
 
 <script>
     function filterTable() {
