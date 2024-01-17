@@ -676,6 +676,12 @@ def edit_user(user_id):
 def user_profile():
     user_id = current_user.id
     connection = get_db_connection()
+    company_data = None
+    is_admin = user_id == 1  # Check if the user is admin
+
+    if is_admin:
+        company_data = get_company_data()  # Fetch data from my_company table
+
     if request.method == 'POST':
         login = request.form['login']
         old_password = request.form['old_password']
@@ -710,7 +716,7 @@ def user_profile():
             flash('User not found')
             return redirect(url_for('index'))
 
-        return render_template('user_profile.html', user=user_data)
+        return render_template('user_profile.html', user=user_data, company=company_data, is_admin=is_admin)
 
 @app.route('/get_printers/', methods=['GET'])
 @login_required

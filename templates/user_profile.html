@@ -28,6 +28,20 @@
     </div>
 </form>
 
+{% if is_admin %}
+<div class="admin-box">
+    <h3>My Company Details</h3>
+    <p>Company: {{ company.company_name }}</p>
+    <p>Tax ID: {{ company.tax_id }}</p>
+    <p>Address: {{ company.address }}</p>
+    <p>Postal Code: {{ company.postal_code }}</p>
+    <p>City: {{ company.city }}</p>
+    <p>Phone: {{ company.phone }}</p>
+    <p>Email: {{ company.email }}</p>
+</div>
+{% endif %}
+
+
 <script>
 document.getElementById('userProfileForm').addEventListener('submit', function(event) {
     var newPassword = document.getElementById('new_password').value;
