@@ -99,6 +99,14 @@ def update_user_in_db(user_id, login, password, admin, email, first_login_change
         cursor.execute(sql, (login, password, admin, email, first_login_change_pass, user_id))
     connection.commit()
 
+def get_company_data():
+    connection = get_db_connection()
+    with connection.cursor() as cursor:
+        sql = "SELECT * FROM my_company"
+        cursor.execute(sql)
+        company_data = cursor.fetchone()
+    return company_data
+
 @app.route('/', methods=['GET'])
 def home():
     connection = get_db_connection()
@@ -189,7 +197,7 @@ def reset_password():
 
         token = s.dumps(email, salt='email-confirm')
         msg = Message('Password reset token', sender='noreply@example.com', recipients=[email])
-        msg.body = 'Your password reset token is {}'.format(token)
+        msg.body = 'Your password reset token is {}\nGo to /confirm_reset/<yourtoken> <- paste Your reset token here.'.format(token, token)
         mail.send(msg)
         return 'Email sent!'
     return render_template('admpassreset.html')
@@ -203,6 +211,13 @@ def confirm_reset(token):
     if request.method == 'POST':
         password = request.form['password']
         hashed_password = generate_password_hash(password)
+
+        connection = get_db_connection()
+        with connection.cursor() as cursor:
+            sql = "UPDATE users SET password = %s WHERE id = 1"
+            cursor.execute(sql, (hashed_password,))
+            connection.commit()
+
         return 'Password reset!'
     return render_template('confirmreset.html', token=token)
 
@@ -936,6 +951,8 @@ def mark_done():
         sql = "UPDATE service_requests SET active = FALSE, done_description = %s WHERE id = %s"
         cursor.execute(sql, (done_description, request_id))
         connection.commit()
+
+    flash('Marked as done, moved to archive.', 'success')
 
     user = get_user_by_id(current_user.get_id())
 
