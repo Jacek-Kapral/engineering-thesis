@@ -6,6 +6,5 @@ __pycache__/
 venv/
 *.env
 *.sqlite
-config.ini
 .env
 /temp/*.txt
