@@ -8,3 +8,7 @@ venv/
 *.sqlite
 .env
 /temp/*.txt
+.bzr
+.hg
+._darcs
+BitKeeper

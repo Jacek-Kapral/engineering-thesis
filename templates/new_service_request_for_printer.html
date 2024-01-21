@@ -20,6 +20,7 @@
 </table>
 
 <form action="{{ url_for('submit_service_request') }}" method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="form-item">
     <label for="service_request">Problem:<span class="required">*</span></label>
     <textarea id="service_request" name="service_request" required></textarea>

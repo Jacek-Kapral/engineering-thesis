@@ -7,6 +7,7 @@
 </div>
 
 <form action="/register" method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="form-row">
     <div class="form-item">
       <label for="login">Login:<span class="required">*</span></label>

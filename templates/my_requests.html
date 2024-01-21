@@ -33,6 +33,7 @@
     <tr>
       <td colspan="8">
         <form class="table-form" method="POST" action="{{ url_for('mark_done') }}" onsubmit="return confirm('Are you sure you want to mark this service request as done?');" style="display: flex; flex-direction: row; justify-content: center; align-items: center;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="request_id" value="{{ request.id }}">
           <input type="text" name="done_description" placeholder="Describe work done here and click green OK button to confirm." maxlength="255" style="width: 60%;">
           <input type="image" src="{{ url_for('static', filename='img/ok_ico.png') }}" alt="Done">
@@ -42,6 +43,7 @@
     <tr>
       <td colspan="8" style="text-align: center;">
         <form method="POST" action="{{ url_for('generate_pdf', request_id=request.id) }}" style="display: inline;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="button-style">Generate PDF Report</button>
         </form>
       </td>

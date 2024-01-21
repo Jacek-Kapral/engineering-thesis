@@ -5,6 +5,7 @@
     <h2>New service request</h2>
 </div>
 <form action="{{ url_for('create_service_request') }}" method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="form-row">
     <div class="form-item">
       <label for="company">Client:<span class="required">*</span></label>

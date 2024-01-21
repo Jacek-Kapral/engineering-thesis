@@ -16,4 +16,4 @@ RUN apt-get update && apt-get install -y \
 
 EXPOSE 5000
 
-CMD ["python", "app.py"]
+CMD ["gunicorn", "-w", "4", "-b", ":5000", "app:app"]

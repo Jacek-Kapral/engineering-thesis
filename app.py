@@ -5,6 +5,7 @@ from functools import wraps
 from flask import Flask, render_template, request, session, g, redirect, url_for, flash, get_flashed_messages, abort, jsonify, make_response
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_mail import Mail, Message
+from flask_wtf.csrf import CSRFProtect
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 from werkzeug.security import generate_password_hash, check_password_hash
 from pymysql.err import IntegrityError
@@ -28,6 +29,7 @@ flask_app = config['flask']['app']
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
+csrf = CSRFProtect(app)
 app.config['ENV'] = flask_env
 app.secret_key = os.environ.get('SECRET_KEY')
 app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
@@ -35,6 +37,7 @@ app.config['MAIL_PORT'] = os.getenv('MAIL_PORT')
 app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL') == 'True'
 app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 mail = Mail(app)
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
@@ -119,6 +122,19 @@ def home():
         return redirect(url_for('register_admin'))
     else:
         return redirect(url_for('login', show_menu=False))
+
+@app.after_request
+def add_security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['Content-Security-Policy']='default-src \'self\''
+    return response
+
+@app.route('/<path:path>')
+def catch_all(path):
+    if path.startswith(('.bzr', '.hg', '._darcs', 'BitKeeper')):
+        abort(404)
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -257,8 +273,6 @@ def login():
             sql = "SELECT * FROM users WHERE login = %s"
             cursor.execute(sql, (username,))
             user_data = cursor.fetchone()
-
-        app.logger.info('Fetched user data: %s', user_data)
 
         if user_data and check_password_hash(user_data['password'], password):
             if not isinstance(user_data['id'], int):
