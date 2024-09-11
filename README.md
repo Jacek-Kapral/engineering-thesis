@@ -14,4 +14,4 @@ Deployment tips for Printer Fleet Manager App:
 
 Comment:
 If You've forgotten the admin password, deploy the app again,
-or use /reset_password if You've put down You real e-mail address.
+or use /reset_password if You've put down Your real e-mail address.
